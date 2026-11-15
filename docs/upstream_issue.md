@@ -50,7 +50,11 @@ rebuilt = await lib.revalidate(graph)                        # re-bind support t
    `etype`/`is_current`/`revision`, but the labels differ (`RELATES`/`Entity` vs `R`/`N`). A small
    `store.dialect` (or a typed `graph.traverse(meta_path, start)` method) would let add-ons avoid physical-layout
    knowledge in `run_cypher`.
-4. **Change events.** A subscription hook on supersede (`graph.on_relation_retired(callback)`) would replace
+4. **Two-tier routing.** A question shape seen in training (the question with its entity masked by type) maps
+   straight to its route, so it costs zero LLM calls even for a new entity. Unseen phrasings go through a one-call
+   router whose start entity must resolve to the route's start type *and* be named in the question. Router errors
+   during learning are logged as misroutes and do not demote a correct route.
+5. **Change events.** A subscription hook on supersede (`graph.on_relation_retired(callback)`) would replace
    polling `relations.get()` during revalidation.
 
 ## Measured effect (this repo, `make eval`)
