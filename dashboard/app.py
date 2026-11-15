@@ -46,7 +46,8 @@ async def boot() -> None:
     C = DesirePaths(llm, lib, B)
     C.learning = False
     STATE.update(g=g, train=train, test=test, sg=sg, backend=backend, lib=lib, llm=llm, B=B, C=C,
-                 dialect=dialect.name, load_s=round(time.time() - t0, 1), events=[], lock=asyncio.Lock())
+                 dialect=dialect.name, load_s=round(time.time() - t0, 1), events=[], lock=asyncio.Lock(),
+                 extra_gold={})
 
 
 @asynccontextmanager
@@ -120,7 +121,8 @@ async def ask(req: Ask):
     if not req.question.strip():
         raise HTTPException(400, "empty question")
     b = STATE["backend"]
-    gold = next((q.gold_names for q in STATE["test"] + STATE["train"] if q.text == req.question), None)
+    gold = STATE["extra_gold"].get(req.question) or next(
+        (q.gold_names for q in STATE["test"] + STATE["train"] if q.text == req.question), None)
     t0 = time.perf_counter()
     if req.agent == "B":
         res = await STATE["B"].answer(req.question, b)
@@ -172,6 +174,8 @@ async def mutate():
               "new_relation": new_rel, "retired_templates": [t.id for t in retired], "try_question": q,
               "expected_answer": b.name(new)}
         STATE["events"].append(ev)
+        if q:
+            STATE["extra_gold"][q] = [b.name(new)]  # gold for the suggested question follows the changed fact
         # keep the generator graph in sync so gold answers stay correct for the try-question
         for e in g.edges:
             if e.src == team and e.type == "ON_CALL":
