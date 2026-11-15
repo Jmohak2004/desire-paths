@@ -8,3 +8,4 @@ scratch/
 *.kuzu
 *.kuzu.wal
 .brew.log
+.hydradb/

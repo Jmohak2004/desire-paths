@@ -1,6 +1,50 @@
 {
- "ts": "2026-11-16 01:53:27",
- "uri_set": false,
- "checks": {},
- "error": "HYDRADB_URI not set; nothing to test"
+ "ts": "2026-11-16 02:51:24",
+ "uri_set": true,
+ "checks": {
+  "selfgraph_insert": "ok",
+  "route_single_query": {
+   "answer": "person:b",
+   "provenance": [
+    [
+     "relation:3ccd0d254c770f0b3d8562cf",
+     1
+    ],
+    [
+     "relation:2b674e8865db7241957a3e59",
+     1
+    ],
+    [
+     "relation:61c3af10c85d8c1143145086",
+     1
+    ]
+   ]
+  },
+  "versioned_supersede": {
+   "retired": "relation:61c3af10c85d8c1143145086",
+   "new": "relation:8491045d5bd5f7ba8049ef8a",
+   "answer_after": "person:c"
+  },
+  "neighbors": [
+   [
+    "ON_CALL",
+    "out",
+    "person:c"
+   ],
+   [
+    "OWNED_BY",
+    "in",
+    "project:x"
+   ]
+  ],
+  "raw_cypher_fallback": [
+   {
+    "a": "person",
+    "r": "test",
+    "b": "team"
+   }
+  ]
+ },
+ "route_cypher": "MATCH (n0:Entity {id: $start})-[r1:RELATES {etype: $t1}]->(n1:Entity)-[r2:RELATES {etype: $t2}]->(n2:Entity)-[r3:RELATES {etype: $t3}]->(n3:Entity) WHERE r1.is_current = true AND NOT r1.ns <> $ns AND r2.is_current = true AND NOT r2.ns <> $ns AND r3.is_current = true AND NOT r3.ns <> $ns RETURN r3.tb AS answer, r1.sid AS s1, r1.revision AS v1, r2.sid AS s2, r2.revision AS v2, r3.sid AS s3, r3.revision AS v3",
+ "passed": true
 }

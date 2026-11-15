@@ -72,8 +72,11 @@ async def main() -> int:
         drv = AsyncGraphDatabase.driver(hs[0], auth=("neo4j", hs[1]) if hs[1] else None)
         async with drv.session(database=os.environ.get("HYDRADB_DATABASE") or "default") as s:
             tag = uuid.uuid4().hex[:8]
-            await s.run("CREATE (a:DPGate {k: $k, role: 'person'})-[:DP_ROUTE {kind: 'test'}]->(b:DPGate {k: $k, role: 'team'})", k=tag)
-            res = await s.run("MATCH (a:DPGate {k: $k})-[r:DP_ROUTE]->(b:DPGate) RETURN a.role AS a, r.kind AS r, b.role AS b", k=tag)
+            base = int(tag, 16) * 10  # HydraDB vertices and edges carry explicit integer ids
+            await s.run("CREATE (a:DPGate {id: $ia, k: $k, role: 'person'})-[:DP_ROUTE {id: $ie, kind: 'test'}]->"
+                        "(b:DPGate {id: $ib, k: $k, role: 'team'})", ia=base + 1, ib=base + 2, ie=base + 3, k=tag)
+            res = await s.run("MATCH (a:DPGate {id: $ia})-[r:DP_ROUTE]->(b:DPGate) RETURN a.role AS a, r.kind AS r, b.role AS b",
+                              ia=base + 1)
             data = [dict(r) async for r in res]
             assert data == [{"a": "person", "r": "test", "b": "team"}], data
             report["checks"]["raw_cypher_fallback"] = data

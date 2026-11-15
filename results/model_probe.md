@@ -18,3 +18,16 @@ Requested model: `google/gemma-4-31b-it`.
 
 Decision: every agent in the measured eval uses `poolside/laguna-xs-2.1` at temperature 0. Switch with `DP_MODEL=...`.
 Embeddings: `nvidia/nemotron-3-embed-1b` (2048-d), the only embedding model that answered on this key.
+
+## Vector-RAG baseline prompt check (seed 0, 12 held-out questions, same model)
+
+A answered too early (after 1-2 retrievals) with a wrong intermediate entity. We tried two stronger prompts to make
+sure the baseline is not a strawman:
+
+| A prompt variant | correct on the 12-question subset |
+|---|---|
+| v1 (shipped): answer or issue a follow-up search, 3 rounds | 3/12 (15/36 on the full held-out set) |
+| v2: "check that every link of the chain is retrieved", 4 rounds | 2/12 |
+| v3: cite the chain of facts first, then answer or search, 4 rounds | 2/12 |
+
+Neither variant helped, so the eval keeps v1.

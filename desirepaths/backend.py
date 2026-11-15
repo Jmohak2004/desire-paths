@@ -120,28 +120,34 @@ class GraphBackend:
         res = await self.sg.retrieve(text, depth=depth, k=5, max_nodes=60, budget_tokens=budget_tokens)
         return res.context
 
+    def _start_key(self, eid: str):
+        """How a start entity is addressed: Kuzu by its string id, HydraDB by SelfGraph's integer surrogate id."""
+        if self.d is HYDRADB:
+            from selfgraph.stores.hydradb import _sk
+
+            return _sk(self.ns, eid)
+        return eid
+
+    def _ns(self, alias: str) -> str:
+        # HydraDB: apply the broad namespace key as a filter, not an index seek (as SelfGraph's HydraDBStore does)
+        return f"NOT {alias}.ns <> $ns" if self.d is HYDRADB else f"{alias}.ns = $ns"
+
     async def neighbors(self, eid: str, rel_type: str | None = None) -> list[Neighbor]:
-        """Current relations touching an entity, both directions. One graph call."""
+        """Current relations touching an entity, both directions. One graph call per direction."""
         self.calls += 1
         N, E = self.d.node, self.d.edge
-        filt = "r.is_current = true AND r.ns = $ns" + (" AND r.etype = $et" if rel_type else "")
-        q = (f"MATCH (a:{N} {{id: $id}})-[r:{E}]-(b:{N}) WHERE {filt} AND a.ns = $ns "
-             f"RETURN r.sid AS sid, r.etype AS et, r.revision AS rev, b.id AS bid, "
-             f"CASE WHEN startNode(r) = a THEN 'out' ELSE 'in' END AS dir")
-        if self.d is KUZU:  # Kuzu has no startNode(); split into two directed matches
-            q = None
-        params: dict[str, Any] = {"id": eid, "ns": self.ns}
+        filt = f"r.is_current = true AND {self._ns('r')}" + (" AND r.etype = $et" if rel_type else "")
+        params: dict[str, Any] = {"id": self._start_key(eid), "ns": self.ns}
         if rel_type:
             params["et"] = rel_type
         rows: list[dict] = []
-        if q is not None:
-            rows = (await self.sg.run_cypher(q, params)).rows
-        else:
-            for dir_, pat in (("out", f"(a:{N} {{id: $id}})-[r:{E}]->(b:{N})"), ("in", f"(a:{N} {{id: $id}})<-[r:{E}]-(b:{N})")):
-                qq = (f"MATCH {pat} WHERE {filt} AND a.ns = $ns "
-                      f"RETURN r.sid AS sid, r.etype AS et, r.revision AS rev, b.id AS bid")
-                for row in (await self.sg.run_cypher(qq, params)).rows:
-                    rows.append({**row, "dir": dir_})
+        for dir_, pat, other in (("out", f"(a:{N} {{id: $id}})-[r:{E}]->(b:{N})", "tb"),
+                                 ("in", f"(a:{N} {{id: $id}})<-[r:{E}]-(b:{N})", "fa")):
+            bid = f"r.{other}" if self.d is HYDRADB else "b.id"
+            q = (f"MATCH {pat} WHERE {filt} "
+                 f"RETURN r.sid AS sid, r.etype AS et, r.revision AS rev, {bid} AS bid")
+            for row in (await self.sg.run_cypher(q, params)).rows:
+                rows.append({**row, "dir": dir_})
         out = []
         for row in rows:
             nm, ty = self._names.get(row["bid"], (row["bid"], ""))
@@ -153,20 +159,24 @@ class GraphBackend:
         """Compile a typed meta-path to ONE Cypher query over current relations."""
         N, E = self.d.node, self.d.edge
         parts = [f"(n0:{N} {{id: $start}})"]
-        where = ["n0.ns = $ns"]
+        where = [] if self.d is HYDRADB else ["n0.ns = $ns"]
         ret = []
         for i, (rel, d) in enumerate(hops, start=1):
-            edge = f"-[r{i}:{E}]->" if d == "out" else f"<-[r{i}:{E}]-"
+            edge = f"-[r{i}:{E} {{etype: $t{i}}}]->" if d == "out" else f"<-[r{i}:{E} {{etype: $t{i}}}]-"
             parts.append(f"{edge}(n{i}:{N})")
-            where += [f"r{i}.etype = $t{i}", f"r{i}.is_current = true", f"r{i}.ns = $ns"]
+            where += [f"r{i}.is_current = true", self._ns(f"r{i}")]
             ret += [f"r{i}.sid AS s{i}", f"r{i}.revision AS v{i}"]
         k = len(hops)
-        return f"MATCH {''.join(parts)} WHERE {' AND '.join(where)} RETURN n{k}.id AS answer, {', '.join(ret)}"
+        if self.d is HYDRADB:  # string ids live on the edges (fa/tb); node ids are integer surrogates
+            ans = f"r{k}.tb" if hops[-1][1] == "out" else f"r{k}.fa"
+        else:
+            ans = f"n{k}.id"
+        return f"MATCH {''.join(parts)} WHERE {' AND '.join(where)} RETURN {ans} AS answer, {', '.join(ret)}"
 
     async def run_route(self, hops: list[tuple[str, str]], start: str) -> list[dict]:
         """Execute a learned route template as a single graph query. Returns answers with provenance."""
         self.calls += 1
-        params: dict[str, Any] = {"start": start, "ns": self.ns}
+        params: dict[str, Any] = {"start": self._start_key(start), "ns": self.ns}
         for i, (rel, _) in enumerate(hops, start=1):
             params[f"t{i}"] = rel
         rows = (await self.sg.run_cypher(self.compile_route(hops), params)).rows

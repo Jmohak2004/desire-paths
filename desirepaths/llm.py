@@ -25,6 +25,7 @@ MODEL = os.environ.get("DP_MODEL", "poolside/laguna-xs-2.1")
 EMBED_MODEL = os.environ.get("DP_EMBED_MODEL", "nvidia/nemotron-3-embed-1b")  # the only NVIDIA embedder serving this key
 TEMPERATURE = 0.0
 MAX_TOKENS = 400
+ATTEMPTS = 20  # rate limits (429) and timeouts on the shared free tier: back off up to ~15 min
 ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = ROOT / "results" / "cache"
 
@@ -96,7 +97,7 @@ class LLM:
 
     async def _live(self, req: dict, key: str) -> dict:
         delay = 2.0
-        for attempt in range(8):
+        for attempt in range(ATTEMPTS):
             try:
                 async with self.sem:
                     t0 = time.perf_counter()
@@ -113,9 +114,7 @@ class LLM:
                 return rec
             except Exception as e:  # rate limits and transient errors: back off and retry
                 status = getattr(e, "status_code", None)
-                if status in (400, 401, 403, 404):
-                    raise
-                if attempt == 7:
+                if status in (400, 401, 403, 404) or attempt == ATTEMPTS - 1:
                     raise
                 await asyncio.sleep(delay)
                 delay = min(delay * 2, 60)
