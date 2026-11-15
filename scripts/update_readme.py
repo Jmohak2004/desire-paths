@@ -30,7 +30,8 @@ def main() -> None:
     if a:
         lines.append(f"- Iterative vector RAG (A) reaches {a['accuracy']['mean']:.2f} accuracy on the same questions.")
     lines += ["", "![learning curve](docs/img/curve.png)", ""]
-    md = (R / "results.md").read_text().split("\n", 3)[-1]
+    md = (R / "results.md").read_text()
+    md = md[md.index("## Held-out, after"):].replace("## ", "#### ")
     lines += [md.strip(), ""]
     heal = R / "heal.json"
     if heal.exists():

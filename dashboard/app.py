@@ -102,13 +102,17 @@ def routes():
 
 @app.get("/api/examples")
 def examples():
-    test = STATE["test"]
-    seen, out = set(), []
-    for q in test:
-        if q.template not in seen:
-            seen.add(q.template)
-            out.append({"question": q.text, "gold": q.gold_names, "template": q.template})
-    return out
+    """Held-out questions (entities never seen in training): one seen phrasing and one new phrasing per template."""
+    seen_ph, new_ph = [], []
+    for tid, spec in QTEMPLATES.items():
+        qs = [q for q in STATE["test"] if q.template == tid]
+        for q in qs:
+            kind = "new phrasing" if any(q.text == p.format(x=STATE["g"].nodes[q.start].name) for p in spec["phrasings"][2:]) \
+                else "seen phrasing"
+            bucket = new_ph if kind == "new phrasing" else seen_ph
+            if not any(e["template"] == tid for e in bucket):
+                bucket.append({"question": q.text, "gold": q.gold_names, "template": tid, "kind": kind})
+    return seen_ph + new_ph
 
 
 class Ask(BaseModel):

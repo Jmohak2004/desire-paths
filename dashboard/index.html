@@ -46,6 +46,7 @@ button{padding:9px 14px;border-radius:8px;border:1px solid var(--line);backgroun
   <section class="card"><h2>Ask the graph (live)</h2>
     <input type="text" id="q" placeholder="Ask a multi-hop question, or pick an example">
     <div class="chips" id="ex"></div>
+    <p class="muted" style="font-size:12px;margin:0 0 10px">All examples are held-out: their entities never appeared in training. ✦ = a phrasing never seen in training (goes through the one-call router).</p>
     <div class="row"><button class="primary" id="askC">Ask Desire Paths (C)</button><button id="askB">Ask graph agent without routes (B)</button></div>
     <div class="out" id="out" hidden></div>
   </section>
@@ -81,7 +82,7 @@ async function load(){
   RES=await j('/api/results');const S=RES.summary;
   if(!S){$('#note').textContent='No results yet: run make eval.';}else{renderResults(S)}
   renderHealRec(RES.heal);LEARN=RES.savings&&RES.savings.learning_one_time;calc();
-  const ex=await j('/api/examples');$('#ex').innerHTML='';ex.forEach(e=>{const c=document.createElement('span');c.className='chip';c.textContent=e.question;c.title=e.question;c.onclick=()=>{$('#q').value=e.question};$('#ex').appendChild(c)});
+  const ex=await j('/api/examples');$('#ex').innerHTML='';ex.forEach(e=>{const c=document.createElement('span');c.className='chip';c.dataset.kind=e.kind;c.textContent=(e.kind==='new phrasing'?'✦ ':'')+e.question;c.title=e.kind+', entity never seen in training';c.onclick=()=>{$('#q').value=e.question};$('#ex').appendChild(c)});
   routes();
 }
 function renderResults(S){
@@ -115,7 +116,7 @@ async function ask(agent){
   const q=$('#q').value.trim();if(!q)return;const bs=[$('#askC'),$('#askB')];bs.forEach(b=>b.disabled=true);$('#out').hidden=false;$('#out').innerHTML='<span class="muted">running…</span>';
   try{const r=await j('/api/ask',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,agent})});
     const m=r.metrics;const verdict=r.correct==null?'':(r.correct?'<span class="ok">✓ matches gold</span>':`<span class="bad">✗ gold: ${r.gold.join(', ')}</span>`);
-    const how=r.route?`<span class="tag">route ${r.route}</span> one graph query`:(agent==='C'?'<span class="tag">fallback</span> walked the graph':'<span class="tag">walked the graph</span>');
+    const via=(r.steps.find(s=>s.via)||{}).via;const how=r.route?`<span class="tag">route ${r.route}</span> ${via==='shape'?'known question shape → no LLM call needed':'router picked the route (1 LLM call)'}, then one graph query`:(agent==='C'?'<span class="tag">fallback</span> walked the graph':'<span class="tag">walked the graph</span>');
     const path=r.path.length?'<div class="path">'+r.path.map((p,i)=>(i===0?`<span class="node">${p.from}<small>${p.from_type}</small></span>`:'')+`<span class="edge">${p.dir==='out'?'—'+p.rel+'→':'←'+p.rel+'—'}</span><span class="node">${p.to}<small>${p.to_type} · rev ${p.revision}</small></span>`).join('')+'</div>':'';
     $('#out').innerHTML=`<div class="ans">${(r.answer||[]).join(', ')||'(no answer)'} ${verdict}</div><div style="margin:6px 0">${how}</div>${path}
       <div class="row muted"><span>LLM calls <b>${m.llm_calls}</b></span><span>input tokens <b>${m.input_tokens}</b></span><span>output tokens <b>${m.output_tokens}</b></span><span>graph calls <b>${m.graph_calls}</b></span><span>latency <b>${fmt(m.latency_s)}s</b></span></div>`;

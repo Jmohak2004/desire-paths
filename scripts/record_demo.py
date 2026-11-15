@@ -50,8 +50,11 @@ async def main() -> None:
         chip = page.locator("#ex .chip").first
         await chip.click()
         await page.wait_for_timeout(800)
-        await ask("#askB", "ask_b.png")
-        await ask("#askC", "ask_c.png")
+        await ask("#askB", "ask_b.png")      # graph agent without routes: one LLM call per hop
+        await ask("#askC", "ask_c.png")      # same held-out question: known shape -> route, no LLM call
+        await page.locator('#ex .chip[data-kind="new phrasing"]').nth(1).click()
+        await page.wait_for_timeout(800)
+        await ask("#askC", "ask_c_router.png")  # a phrasing never seen in training -> router (1 LLM call) -> route
 
         await page.evaluate("document.querySelector('#mut').scrollIntoView({behavior:'smooth',block:'start'})")
         await page.wait_for_timeout(1200)

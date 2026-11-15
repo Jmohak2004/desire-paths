@@ -7,6 +7,8 @@ Protocol (per seed):
      the route library promotes templates, then C is scored on all HELD-OUT questions with learning frozen.
   A and B hold no learning state, so their numbers cannot change between rounds; they are measured once per seed
   and drawn flat (labelled as such). Held-out start entities never appear in train.
+  Latency per question = LLM time (measured live per call; replayed from the request cache) + graph time (measured
+  every run). Held-out questions are scored sequentially so graph time is not queueing behind other questions.
 """
 from __future__ import annotations
 
@@ -65,7 +67,8 @@ async def run_seed(seed: int, args, llm: LLM, emb: Embedder) -> list[dict]:
             await A.index(g, f"seed{seed}")
 
         async def score(agent_name, fn, rnd):
-            res = await asyncio.gather(*[fn(q) for q in test])
+            # one question at a time: per-question latency must not include queueing behind other questions
+            res = [await fn(q) for q in test]
             out = [record(agent_name, rnd, q, r) | {"seed": seed} for q, r in zip(test, res)]
             a = agg(out)
             print(f"[seed {seed}] round {rnd} {agent_name}: acc={a['accuracy']:.2f} calls={a['llm_calls']:.2f} "

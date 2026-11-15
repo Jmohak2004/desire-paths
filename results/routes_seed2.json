@@ -1,0 +1,1624 @@
+{
+ "min_support": 3,
+ "min_success": 0.8,
+ "shapes": {
+  "The document '{Doc}' describes a service. Which project does that service belong to?": {
+   "n": 3,
+   "fail": 0,
+   "hits": {
+    "Doc|DOCUMENTS:out|PART_OF:out": 3
+   }
+  },
+  "Which team owns the project containing the service affected by incident {Incident}?": {
+   "n": 2,
+   "fail": 0,
+   "hits": {
+    "Incident|AFFECTED:out|PART_OF:out|OWNED_BY:out": 2
+   }
+  },
+  "Incident {Incident} hit a service. Which team owns the project that service is part of?": {
+   "n": 3,
+   "fail": 0,
+   "hits": {
+    "Incident|AFFECTED:out|PART_OF:out|OWNED_BY:out": 3
+   }
+  },
+  "Who is currently on call for the team that owns the project {Person} works on?": {
+   "n": 1,
+   "fail": 0,
+   "hits": {
+    "Person|WORKS_ON:out|OWNED_BY:out|ON_CALL:out": 1,
+    "Person|WORKS_ON:out|OWNED_BY:out|MANAGED_BY:out|MEMBER_OF:out|ON_CALL:out": 1,
+    "Person|WORKS_ON:out|OWNED_BY:out|MEMBER_OF:in|MANAGED_BY:in|ON_CALL:out": 1
+   }
+  },
+  "Who is on call for the team that owns the project service {Service} is part of?": {
+   "n": 2,
+   "fail": 0,
+   "hits": {
+    "Service|PART_OF:out|OWNED_BY:out|ON_CALL:out": 2,
+    "Service|PART_OF:out|OWNED_BY:out|MANAGED_BY:out|MEMBER_OF:out|ON_CALL:out": 2,
+    "Service|PART_OF:out|OWNED_BY:out|MEMBER_OF:in|MANAGED_BY:in|ON_CALL:out": 2
+   }
+  },
+  "{Person} works on some project. Which person is on call for the team owning that project?": {
+   "n": 2,
+   "fail": 0,
+   "hits": {
+    "Person|WORKS_ON:out|OWNED_BY:out|ON_CALL:out": 2,
+    "Person|WORKS_ON:out|OWNED_BY:out|MANAGED_BY:out|MEMBER_OF:out|ON_CALL:out": 2,
+    "Person|WORKS_ON:out|OWNED_BY:out|MEMBER_OF:in|MANAGED_BY:in|ON_CALL:out": 2,
+    "Person|MEMBER_OF:out|ON_CALL:out|WORKS_ON:out|OWNED_BY:out|ON_CALL:out": 1
+   }
+  },
+  "A PR fixed incident {Incident}. Who is the manager of the team its author belongs to?": {
+   "n": 3,
+   "fail": 0,
+   "hits": {
+    "Incident|FIXES:in|AUTHORED_BY:out|MEMBER_OF:out|MANAGED_BY:out": 3,
+    "Incident|FIXES:in|AUTHORED_BY:out": 1
+   }
+  },
+  "Project {Project} belongs to a team. Who is that team's manager?": {
+   "n": 1,
+   "fail": 0,
+   "hits": {
+    "Project|OWNED_BY:out|MANAGED_BY:out": 1,
+    "Project|OWNED_BY:out|MEMBER_OF:in|ON_CALL:in|MANAGED_BY:out": 1,
+    "Project|OWNED_BY:out|ON_CALL:out|MEMBER_OF:out|MANAGED_BY:out": 1
+   }
+  },
+  "Who manages the team that owns project {Project}?": {
+   "n": 3,
+   "fail": 0,
+   "hits": {
+    "Project|OWNED_BY:out|MANAGED_BY:out": 3,
+    "Project|OWNED_BY:out|MEMBER_OF:in|ON_CALL:in|MANAGED_BY:out": 3,
+    "Project|OWNED_BY:out|ON_CALL:out|MEMBER_OF:out|MANAGED_BY:out": 3
+   }
+  },
+  "Service {Service} is down. Who is on call for the team owning its project?": {
+   "n": 2,
+   "fail": 0,
+   "hits": {
+    "Service|PART_OF:out|OWNED_BY:out|ON_CALL:out": 2,
+    "Service|PART_OF:out|OWNED_BY:out|MANAGED_BY:out|MEMBER_OF:out|ON_CALL:out": 2,
+    "Service|PART_OF:out|OWNED_BY:out|MEMBER_OF:in|MANAGED_BY:in|ON_CALL:out": 2
+   }
+  },
+  "Who manages the team of the person who authored the PR that fixed incident {Incident}?": {
+   "n": 1,
+   "fail": 0,
+   "hits": {
+    "Incident|FIXES:in|AUTHORED_BY:out": 1,
+    "Incident|FIXES:in|AUTHORED_BY:out|MEMBER_OF:out|MANAGED_BY:out": 1,
+    "Incident|FIXES:in|REVIEWED_BY:out|MEMBER_OF:out|MANAGED_BY:out": 1
+   }
+  }
+ },
+ "templates": [
+  {
+   "id": "Rcc27",
+   "start_type": "Doc",
+   "hops": [
+    [
+     "DOCUMENTS",
+     "out"
+    ],
+    [
+     "PART_OF",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "active",
+   "version": 1,
+   "successes": 5,
+   "failures": 0,
+   "support": [
+    {
+     "start": "doc:254",
+     "provenance": [
+      [
+       "relation:4ab556a77a6a393314f7110e",
+       1
+      ],
+      [
+       "relation:9877e7eeed18efc9743edb1f",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "doc:252",
+     "provenance": [
+      [
+       "relation:f6f1a11f683ab3e9cb1db477",
+       1
+      ],
+      [
+       "relation:54c8af9e474cd0c6117f186d",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "doc:149",
+     "provenance": [
+      [
+       "relation:75a5b7d943bd6c384ffe274c",
+       1
+      ],
+      [
+       "relation:f9e2454eb9858af69012dc6c",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [
+    "The document '{Doc}' describes a service. Which project does that service belong to?"
+   ],
+   "uses": 5,
+   "events": [
+    {
+     "t": 2,
+     "event": "promoted",
+     "version": 1,
+     "support": 3
+    }
+   ],
+   "signature": "(Doc)-[DOCUMENTS]->()-[PART_OF]->()",
+   "success_rate": 1.0
+  },
+  {
+   "id": "Ra184",
+   "start_type": "Incident",
+   "hops": [
+    [
+     "AFFECTED",
+     "out"
+    ],
+    [
+     "PART_OF",
+     "out"
+    ],
+    [
+     "OWNED_BY",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "active",
+   "version": 1,
+   "successes": 3,
+   "failures": 0,
+   "support": [
+    {
+     "start": "incident:493",
+     "provenance": [
+      [
+       "relation:7171d17cc9461a4b4f8863eb",
+       1
+      ],
+      [
+       "relation:9e107751bcb403e573b5e600",
+       1
+      ],
+      [
+       "relation:834be7a9500dd6196e01833a",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "incident:486",
+     "provenance": [
+      [
+       "relation:aa8a214bbb9717d049920bd0",
+       1
+      ],
+      [
+       "relation:a6b587fd00a7125ad90a9ef8",
+       1
+      ],
+      [
+       "relation:af3a8e34903ba8f057fa0285",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "incident:469",
+     "provenance": [
+      [
+       "relation:3f7c314be003e944a5a908a0",
+       1
+      ],
+      [
+       "relation:b1263a81b84350c9bb22ff59",
+       1
+      ],
+      [
+       "relation:563109e5306d1293e01c0f71",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "incident:115",
+     "provenance": [
+      [
+       "relation:0d6742d836cdb1c73e0fc783",
+       1
+      ],
+      [
+       "relation:e37dfb59aa2e70dff5a542a3",
+       1
+      ],
+      [
+       "relation:50ec74cd9f1add615061eb64",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "incident:542",
+     "provenance": [
+      [
+       "relation:4cdd39e7acf8dfbc84cd061f",
+       1
+      ],
+      [
+       "relation:418017fb0a056290950b9111",
+       1
+      ],
+      [
+       "relation:a7f52b8221033ea81dc24e13",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [
+    "Incident {Incident} hit a service. Which team owns the project that service is part of?",
+    "Which team owns the project containing the service affected by incident {Incident}?"
+   ],
+   "uses": 3,
+   "events": [
+    {
+     "t": 1,
+     "event": "promoted",
+     "version": 1,
+     "support": 5
+    }
+   ],
+   "signature": "(Incident)-[AFFECTED]->()-[PART_OF]->()-[OWNED_BY]->()",
+   "success_rate": 1.0
+  },
+  {
+   "id": "Rc346",
+   "start_type": "Person",
+   "hops": [
+    [
+     "WORKS_ON",
+     "out"
+    ],
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "ON_CALL",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "active",
+   "version": 1,
+   "successes": 5,
+   "failures": 0,
+   "support": [
+    {
+     "start": "person:300",
+     "provenance": [
+      [
+       "relation:1ad1d9e3548f3c30fe411942",
+       1
+      ],
+      [
+       "relation:e3bcf94e4513216617d04b7a",
+       1
+      ],
+      [
+       "relation:f5ee6a6c8a75d62f369c349c",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "person:290",
+     "provenance": [
+      [
+       "relation:def17f97f073032a6d9161f8",
+       1
+      ],
+      [
+       "relation:15c45b129731b91d9ebefbbb",
+       1
+      ],
+      [
+       "relation:f5ee6a6c8a75d62f369c349c",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "person:303",
+     "provenance": [
+      [
+       "relation:21eb95395efee03a42764325",
+       1
+      ],
+      [
+       "relation:5b39999823c7230520aafcf2",
+       1
+      ],
+      [
+       "relation:b23830b0eda17e545ffd2a0c",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [
+    "{Person} works on some project. Which person is on call for the team owning that project?",
+    "Who is currently on call for the team that owns the project {Person} works on?"
+   ],
+   "uses": 5,
+   "events": [
+    {
+     "t": 1,
+     "event": "promoted",
+     "version": 1,
+     "support": 3
+    }
+   ],
+   "signature": "(Person)-[WORKS_ON]->()-[OWNED_BY]->()-[ON_CALL]->()",
+   "success_rate": 1.0
+  },
+  {
+   "id": "Ra6f1",
+   "start_type": "Person",
+   "hops": [
+    [
+     "WORKS_ON",
+     "out"
+    ],
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "MANAGED_BY",
+     "out"
+    ],
+    [
+     "MEMBER_OF",
+     "out"
+    ],
+    [
+     "ON_CALL",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "candidate",
+   "version": 0,
+   "successes": 0,
+   "failures": 0,
+   "support": [
+    {
+     "start": "person:300",
+     "provenance": [
+      [
+       "relation:1ad1d9e3548f3c30fe411942",
+       1
+      ],
+      [
+       "relation:e3bcf94e4513216617d04b7a",
+       1
+      ],
+      [
+       "relation:a297ae7fa0e6819fa2cb4cf9",
+       1
+      ],
+      [
+       "relation:ba0ba554874f8f3796d88c24",
+       1
+      ],
+      [
+       "relation:f5ee6a6c8a75d62f369c349c",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "person:290",
+     "provenance": [
+      [
+       "relation:def17f97f073032a6d9161f8",
+       1
+      ],
+      [
+       "relation:15c45b129731b91d9ebefbbb",
+       1
+      ],
+      [
+       "relation:a297ae7fa0e6819fa2cb4cf9",
+       1
+      ],
+      [
+       "relation:ba0ba554874f8f3796d88c24",
+       1
+      ],
+      [
+       "relation:f5ee6a6c8a75d62f369c349c",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "person:303",
+     "provenance": [
+      [
+       "relation:21eb95395efee03a42764325",
+       1
+      ],
+      [
+       "relation:5b39999823c7230520aafcf2",
+       1
+      ],
+      [
+       "relation:1ee855ed014d06432b30cc17",
+       1
+      ],
+      [
+       "relation:490344c4a277bf485271d804",
+       1
+      ],
+      [
+       "relation:b23830b0eda17e545ffd2a0c",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [],
+   "uses": 0,
+   "events": [],
+   "signature": "(Person)-[WORKS_ON]->()-[OWNED_BY]->()-[MANAGED_BY]->()-[MEMBER_OF]->()-[ON_CALL]->()",
+   "success_rate": 0.0
+  },
+  {
+   "id": "Rc34f",
+   "start_type": "Person",
+   "hops": [
+    [
+     "WORKS_ON",
+     "out"
+    ],
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "MEMBER_OF",
+     "in"
+    ],
+    [
+     "MANAGED_BY",
+     "in"
+    ],
+    [
+     "ON_CALL",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "candidate",
+   "version": 0,
+   "successes": 0,
+   "failures": 0,
+   "support": [
+    {
+     "start": "person:300",
+     "provenance": [
+      [
+       "relation:1ad1d9e3548f3c30fe411942",
+       1
+      ],
+      [
+       "relation:e3bcf94e4513216617d04b7a",
+       1
+      ],
+      [
+       "relation:ba0ba554874f8f3796d88c24",
+       1
+      ],
+      [
+       "relation:a297ae7fa0e6819fa2cb4cf9",
+       1
+      ],
+      [
+       "relation:f5ee6a6c8a75d62f369c349c",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "person:290",
+     "provenance": [
+      [
+       "relation:def17f97f073032a6d9161f8",
+       1
+      ],
+      [
+       "relation:15c45b129731b91d9ebefbbb",
+       1
+      ],
+      [
+       "relation:ba0ba554874f8f3796d88c24",
+       1
+      ],
+      [
+       "relation:a297ae7fa0e6819fa2cb4cf9",
+       1
+      ],
+      [
+       "relation:f5ee6a6c8a75d62f369c349c",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "person:303",
+     "provenance": [
+      [
+       "relation:21eb95395efee03a42764325",
+       1
+      ],
+      [
+       "relation:5b39999823c7230520aafcf2",
+       1
+      ],
+      [
+       "relation:490344c4a277bf485271d804",
+       1
+      ],
+      [
+       "relation:1ee855ed014d06432b30cc17",
+       1
+      ],
+      [
+       "relation:b23830b0eda17e545ffd2a0c",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [],
+   "uses": 0,
+   "events": [],
+   "signature": "(Person)-[WORKS_ON]->()-[OWNED_BY]->()<-[MEMBER_OF]-()<-[MANAGED_BY]-()-[ON_CALL]->()",
+   "success_rate": 0.0
+  },
+  {
+   "id": "Rcaa6",
+   "start_type": "Service",
+   "hops": [
+    [
+     "PART_OF",
+     "out"
+    ],
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "ON_CALL",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "active",
+   "version": 1,
+   "successes": 4,
+   "failures": 0,
+   "support": [
+    {
+     "start": "service:136",
+     "provenance": [
+      [
+       "relation:44e3e0b8df906e1245896c11",
+       1
+      ],
+      [
+       "relation:563109e5306d1293e01c0f71",
+       1
+      ],
+      [
+       "relation:061bff16bff965ac85079687",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:88",
+     "provenance": [
+      [
+       "relation:e45eacf029fce6dacf95f387",
+       1
+      ],
+      [
+       "relation:af3a8e34903ba8f057fa0285",
+       1
+      ],
+      [
+       "relation:90112cfc3038435d211a60f1",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:157",
+     "provenance": [
+      [
+       "relation:a1a0ab038f60225d1df762e0",
+       1
+      ],
+      [
+       "relation:82539da26476ddb64c71c18b",
+       1
+      ],
+      [
+       "relation:d55eb783dfc9b402864e280b",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:152",
+     "provenance": [
+      [
+       "relation:9c30c6afa9dceadffe155a8a",
+       1
+      ],
+      [
+       "relation:5dcdf4259ceffdce173d2442",
+       1
+      ],
+      [
+       "relation:245b1219a3fa1d0af24b538b",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [
+    "Service {Service} is down. Who is on call for the team owning its project?",
+    "Who is on call for the team that owns the project service {Service} is part of?"
+   ],
+   "uses": 4,
+   "events": [
+    {
+     "t": 2,
+     "event": "promoted",
+     "version": 1,
+     "support": 4
+    }
+   ],
+   "signature": "(Service)-[PART_OF]->()-[OWNED_BY]->()-[ON_CALL]->()",
+   "success_rate": 1.0
+  },
+  {
+   "id": "R024a",
+   "start_type": "Service",
+   "hops": [
+    [
+     "PART_OF",
+     "out"
+    ],
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "MANAGED_BY",
+     "out"
+    ],
+    [
+     "MEMBER_OF",
+     "out"
+    ],
+    [
+     "ON_CALL",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "candidate",
+   "version": 0,
+   "successes": 0,
+   "failures": 0,
+   "support": [
+    {
+     "start": "service:136",
+     "provenance": [
+      [
+       "relation:44e3e0b8df906e1245896c11",
+       1
+      ],
+      [
+       "relation:563109e5306d1293e01c0f71",
+       1
+      ],
+      [
+       "relation:80ea84f7a9a5892b791b9cee",
+       1
+      ],
+      [
+       "relation:25d4803cee34776fad890e62",
+       1
+      ],
+      [
+       "relation:061bff16bff965ac85079687",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:88",
+     "provenance": [
+      [
+       "relation:e45eacf029fce6dacf95f387",
+       1
+      ],
+      [
+       "relation:af3a8e34903ba8f057fa0285",
+       1
+      ],
+      [
+       "relation:3e52827f992c81a18aeca0a3",
+       1
+      ],
+      [
+       "relation:f0db6bcb0f5718a1800b2ab9",
+       1
+      ],
+      [
+       "relation:90112cfc3038435d211a60f1",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:157",
+     "provenance": [
+      [
+       "relation:a1a0ab038f60225d1df762e0",
+       1
+      ],
+      [
+       "relation:82539da26476ddb64c71c18b",
+       1
+      ],
+      [
+       "relation:ef1c013079283f0cc82eac12",
+       1
+      ],
+      [
+       "relation:9e8c9f3bcb74476226e3812f",
+       1
+      ],
+      [
+       "relation:d55eb783dfc9b402864e280b",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:152",
+     "provenance": [
+      [
+       "relation:9c30c6afa9dceadffe155a8a",
+       1
+      ],
+      [
+       "relation:5dcdf4259ceffdce173d2442",
+       1
+      ],
+      [
+       "relation:d5ed3132839bfdb738998e62",
+       1
+      ],
+      [
+       "relation:574aa5092850e7fc0e9e6dd8",
+       1
+      ],
+      [
+       "relation:245b1219a3fa1d0af24b538b",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [],
+   "uses": 0,
+   "events": [],
+   "signature": "(Service)-[PART_OF]->()-[OWNED_BY]->()-[MANAGED_BY]->()-[MEMBER_OF]->()-[ON_CALL]->()",
+   "success_rate": 0.0
+  },
+  {
+   "id": "Ra37d",
+   "start_type": "Service",
+   "hops": [
+    [
+     "PART_OF",
+     "out"
+    ],
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "MEMBER_OF",
+     "in"
+    ],
+    [
+     "MANAGED_BY",
+     "in"
+    ],
+    [
+     "ON_CALL",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "candidate",
+   "version": 0,
+   "successes": 0,
+   "failures": 0,
+   "support": [
+    {
+     "start": "service:136",
+     "provenance": [
+      [
+       "relation:44e3e0b8df906e1245896c11",
+       1
+      ],
+      [
+       "relation:563109e5306d1293e01c0f71",
+       1
+      ],
+      [
+       "relation:25d4803cee34776fad890e62",
+       1
+      ],
+      [
+       "relation:80ea84f7a9a5892b791b9cee",
+       1
+      ],
+      [
+       "relation:061bff16bff965ac85079687",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:88",
+     "provenance": [
+      [
+       "relation:e45eacf029fce6dacf95f387",
+       1
+      ],
+      [
+       "relation:af3a8e34903ba8f057fa0285",
+       1
+      ],
+      [
+       "relation:f0db6bcb0f5718a1800b2ab9",
+       1
+      ],
+      [
+       "relation:3e52827f992c81a18aeca0a3",
+       1
+      ],
+      [
+       "relation:90112cfc3038435d211a60f1",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:157",
+     "provenance": [
+      [
+       "relation:a1a0ab038f60225d1df762e0",
+       1
+      ],
+      [
+       "relation:82539da26476ddb64c71c18b",
+       1
+      ],
+      [
+       "relation:9e8c9f3bcb74476226e3812f",
+       1
+      ],
+      [
+       "relation:ef1c013079283f0cc82eac12",
+       1
+      ],
+      [
+       "relation:d55eb783dfc9b402864e280b",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:152",
+     "provenance": [
+      [
+       "relation:9c30c6afa9dceadffe155a8a",
+       1
+      ],
+      [
+       "relation:5dcdf4259ceffdce173d2442",
+       1
+      ],
+      [
+       "relation:574aa5092850e7fc0e9e6dd8",
+       1
+      ],
+      [
+       "relation:d5ed3132839bfdb738998e62",
+       1
+      ],
+      [
+       "relation:245b1219a3fa1d0af24b538b",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [],
+   "uses": 0,
+   "events": [],
+   "signature": "(Service)-[PART_OF]->()-[OWNED_BY]->()<-[MEMBER_OF]-()<-[MANAGED_BY]-()-[ON_CALL]->()",
+   "success_rate": 0.0
+  },
+  {
+   "id": "Rf35e",
+   "start_type": "Incident",
+   "hops": [
+    [
+     "FIXES",
+     "in"
+    ],
+    [
+     "AUTHORED_BY",
+     "out"
+    ],
+    [
+     "MEMBER_OF",
+     "out"
+    ],
+    [
+     "MANAGED_BY",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "active",
+   "version": 1,
+   "successes": 3,
+   "failures": 0,
+   "support": [
+    {
+     "start": "incident:437",
+     "provenance": [
+      [
+       "relation:9ac06d359cf2c73801ae1958",
+       1
+      ],
+      [
+       "relation:ee1a572b81fafdfb06c51aed",
+       1
+      ],
+      [
+       "relation:849591d45353afd788a391eb",
+       1
+      ],
+      [
+       "relation:f8c6d29f20378565816f45a5",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "incident:482",
+     "provenance": [
+      [
+       "relation:bfd3ed7ca4e5580df7791559",
+       1
+      ],
+      [
+       "relation:e94d4e1940d34a997cfeb5bf",
+       1
+      ],
+      [
+       "relation:e375a2cf596057f3f027cb82",
+       1
+      ],
+      [
+       "relation:e16f1f2384608590215b852c",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "incident:281",
+     "provenance": [
+      [
+       "relation:fa1725d27f0b7b19e45e894f",
+       1
+      ],
+      [
+       "relation:6ac49c6f6985fd4e144d08a6",
+       1
+      ],
+      [
+       "relation:574aa5092850e7fc0e9e6dd8",
+       1
+      ],
+      [
+       "relation:d5ed3132839bfdb738998e62",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "incident:597",
+     "provenance": [
+      [
+       "relation:35c0cb7c567c7f1c9b7dd699",
+       1
+      ],
+      [
+       "relation:2f9994ae7a54939e9c55c296",
+       1
+      ],
+      [
+       "relation:9aa2aebb7799b9253f09e856",
+       1
+      ],
+      [
+       "relation:82096644301c457fd9afd99d",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [
+    "A PR fixed incident {Incident}. Who is the manager of the team its author belongs to?"
+   ],
+   "uses": 3,
+   "events": [
+    {
+     "t": 3,
+     "event": "promoted",
+     "version": 1,
+     "support": 3
+    }
+   ],
+   "signature": "(Incident)<-[FIXES]-()-[AUTHORED_BY]->()-[MEMBER_OF]->()-[MANAGED_BY]->()",
+   "success_rate": 1.0
+  },
+  {
+   "id": "Rf525",
+   "start_type": "Person",
+   "hops": [
+    [
+     "MEMBER_OF",
+     "out"
+    ],
+    [
+     "ON_CALL",
+     "out"
+    ],
+    [
+     "WORKS_ON",
+     "out"
+    ],
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "ON_CALL",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "candidate",
+   "version": 0,
+   "successes": 0,
+   "failures": 0,
+   "support": [
+    {
+     "start": "person:303",
+     "provenance": [
+      [
+       "relation:2dcd3053bd814c56e325a9e1",
+       1
+      ],
+      [
+       "relation:77cc124736c7b529bcbcbd38",
+       1
+      ],
+      [
+       "relation:21eb95395efee03a42764325",
+       1
+      ],
+      [
+       "relation:5b39999823c7230520aafcf2",
+       1
+      ],
+      [
+       "relation:b23830b0eda17e545ffd2a0c",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [],
+   "uses": 0,
+   "events": [],
+   "signature": "(Person)-[MEMBER_OF]->()-[ON_CALL]->()-[WORKS_ON]->()-[OWNED_BY]->()-[ON_CALL]->()",
+   "success_rate": 0.0
+  },
+  {
+   "id": "Re79a",
+   "start_type": "Project",
+   "hops": [
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "MANAGED_BY",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "active",
+   "version": 1,
+   "successes": 4,
+   "failures": 0,
+   "support": [
+    {
+     "start": "project:31",
+     "provenance": [
+      [
+       "relation:9836c46ffd8a245f7554da1e",
+       1
+      ],
+      [
+       "relation:d2d0da2eaa6b894ede486785",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "project:83",
+     "provenance": [
+      [
+       "relation:68b1e680fb3360dc01949aa8",
+       1
+      ],
+      [
+       "relation:f6197bbe4e406bbde885f3a7",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "project:70",
+     "provenance": [
+      [
+       "relation:c629b67683ed9ebbf70ea022",
+       1
+      ],
+      [
+       "relation:f8c6d29f20378565816f45a5",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "project:9",
+     "provenance": [
+      [
+       "relation:8167720cab04f82207819b8e",
+       1
+      ],
+      [
+       "relation:82e169039caae8d322d6ef3f",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [
+    "Who manages the team that owns project {Project}?",
+    "Project {Project} belongs to a team. Who is that team's manager?"
+   ],
+   "uses": 4,
+   "events": [
+    {
+     "t": 2,
+     "event": "promoted",
+     "version": 1,
+     "support": 4
+    }
+   ],
+   "signature": "(Project)-[OWNED_BY]->()-[MANAGED_BY]->()",
+   "success_rate": 1.0
+  },
+  {
+   "id": "R8d69",
+   "start_type": "Project",
+   "hops": [
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "MEMBER_OF",
+     "in"
+    ],
+    [
+     "ON_CALL",
+     "in"
+    ],
+    [
+     "MANAGED_BY",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "candidate",
+   "version": 0,
+   "successes": 0,
+   "failures": 0,
+   "support": [
+    {
+     "start": "project:31",
+     "provenance": [
+      [
+       "relation:9836c46ffd8a245f7554da1e",
+       1
+      ],
+      [
+       "relation:23fb786eb312a74b10e98a9d",
+       1
+      ],
+      [
+       "relation:d2a1ebb35a73ae61711c1cf5",
+       1
+      ],
+      [
+       "relation:d2d0da2eaa6b894ede486785",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "project:83",
+     "provenance": [
+      [
+       "relation:68b1e680fb3360dc01949aa8",
+       1
+      ],
+      [
+       "relation:d95cf8fb0d09e4648604523c",
+       1
+      ],
+      [
+       "relation:c236c2ff5fcdb1f3f286ce2a",
+       1
+      ],
+      [
+       "relation:f6197bbe4e406bbde885f3a7",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "project:70",
+     "provenance": [
+      [
+       "relation:c629b67683ed9ebbf70ea022",
+       1
+      ],
+      [
+       "relation:9ff44a6908b6593e81ce0c20",
+       1
+      ],
+      [
+       "relation:9b58e75df9ee06315c9c42c4",
+       1
+      ],
+      [
+       "relation:f8c6d29f20378565816f45a5",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "project:9",
+     "provenance": [
+      [
+       "relation:8167720cab04f82207819b8e",
+       1
+      ],
+      [
+       "relation:c2b70bf16510a900a7ec26a8",
+       1
+      ],
+      [
+       "relation:4bcac5e4f1e8f1f73759bc44",
+       1
+      ],
+      [
+       "relation:82e169039caae8d322d6ef3f",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [],
+   "uses": 0,
+   "events": [],
+   "signature": "(Project)-[OWNED_BY]->()<-[MEMBER_OF]-()<-[ON_CALL]-()-[MANAGED_BY]->()",
+   "success_rate": 0.0
+  },
+  {
+   "id": "Rfaaa",
+   "start_type": "Project",
+   "hops": [
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "ON_CALL",
+     "out"
+    ],
+    [
+     "MEMBER_OF",
+     "out"
+    ],
+    [
+     "MANAGED_BY",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "candidate",
+   "version": 0,
+   "successes": 0,
+   "failures": 0,
+   "support": [
+    {
+     "start": "project:31",
+     "provenance": [
+      [
+       "relation:9836c46ffd8a245f7554da1e",
+       1
+      ],
+      [
+       "relation:d2a1ebb35a73ae61711c1cf5",
+       1
+      ],
+      [
+       "relation:23fb786eb312a74b10e98a9d",
+       1
+      ],
+      [
+       "relation:d2d0da2eaa6b894ede486785",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "project:83",
+     "provenance": [
+      [
+       "relation:68b1e680fb3360dc01949aa8",
+       1
+      ],
+      [
+       "relation:c236c2ff5fcdb1f3f286ce2a",
+       1
+      ],
+      [
+       "relation:d95cf8fb0d09e4648604523c",
+       1
+      ],
+      [
+       "relation:f6197bbe4e406bbde885f3a7",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "project:70",
+     "provenance": [
+      [
+       "relation:c629b67683ed9ebbf70ea022",
+       1
+      ],
+      [
+       "relation:9b58e75df9ee06315c9c42c4",
+       1
+      ],
+      [
+       "relation:9ff44a6908b6593e81ce0c20",
+       1
+      ],
+      [
+       "relation:f8c6d29f20378565816f45a5",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "project:9",
+     "provenance": [
+      [
+       "relation:8167720cab04f82207819b8e",
+       1
+      ],
+      [
+       "relation:4bcac5e4f1e8f1f73759bc44",
+       1
+      ],
+      [
+       "relation:c2b70bf16510a900a7ec26a8",
+       1
+      ],
+      [
+       "relation:82e169039caae8d322d6ef3f",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [],
+   "uses": 0,
+   "events": [],
+   "signature": "(Project)-[OWNED_BY]->()-[ON_CALL]->()-[MEMBER_OF]->()-[MANAGED_BY]->()",
+   "success_rate": 0.0
+  },
+  {
+   "id": "R80bb",
+   "start_type": "Incident",
+   "hops": [
+    [
+     "FIXES",
+     "in"
+    ],
+    [
+     "AUTHORED_BY",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "candidate",
+   "version": 0,
+   "successes": 0,
+   "failures": 0,
+   "support": [
+    {
+     "start": "incident:482",
+     "provenance": [
+      [
+       "relation:bfd3ed7ca4e5580df7791559",
+       1
+      ],
+      [
+       "relation:e94d4e1940d34a997cfeb5bf",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "incident:281",
+     "provenance": [
+      [
+       "relation:fa1725d27f0b7b19e45e894f",
+       1
+      ],
+      [
+       "relation:6ac49c6f6985fd4e144d08a6",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [
+    "Who manages the team of the person who authored the PR that fixed incident {Incident}?"
+   ],
+   "uses": 0,
+   "events": [],
+   "signature": "(Incident)<-[FIXES]-()-[AUTHORED_BY]->()",
+   "success_rate": 0.0
+  },
+  {
+   "id": "Re0c7",
+   "start_type": "Incident",
+   "hops": [
+    [
+     "FIXES",
+     "in"
+    ],
+    [
+     "REVIEWED_BY",
+     "out"
+    ],
+    [
+     "MEMBER_OF",
+     "out"
+    ],
+    [
+     "MANAGED_BY",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "candidate",
+   "version": 0,
+   "successes": 0,
+   "failures": 0,
+   "support": [
+    {
+     "start": "incident:482",
+     "provenance": [
+      [
+       "relation:bfd3ed7ca4e5580df7791559",
+       1
+      ],
+      [
+       "relation:f718f7379fcbc3fc4dae75c1",
+       1
+      ],
+      [
+       "relation:4aff325641d743531753791f",
+       1
+      ],
+      [
+       "relation:e16f1f2384608590215b852c",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [],
+   "uses": 0,
+   "events": [],
+   "signature": "(Incident)<-[FIXES]-()-[REVIEWED_BY]->()-[MEMBER_OF]->()-[MANAGED_BY]->()",
+   "success_rate": 0.0
+  }
+ ]
+}

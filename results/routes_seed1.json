@@ -2,18 +2,18 @@
  "min_support": 3,
  "min_success": 0.8,
  "shapes": {
-  "The document '{Doc}' describes a service. Which project does that service belong to?": {
-   "n": 2,
-   "fail": 0,
-   "hits": {
-    "Doc|DOCUMENTS:out|PART_OF:out": 2
-   }
-  },
   "Which project is the service documented in '{Doc}' part of?": {
    "n": 1,
    "fail": 0,
    "hits": {
     "Doc|DOCUMENTS:out|PART_OF:out": 1
+   }
+  },
+  "The document '{Doc}' describes a service. Which project does that service belong to?": {
+   "n": 2,
+   "fail": 0,
+   "hits": {
+    "Doc|DOCUMENTS:out|PART_OF:out": 2
    }
   },
   "Incident {Incident} hit a service. Which team owns the project that service is part of?": {
@@ -50,6 +50,22 @@
     "Project|OWNED_BY:out|ON_CALL:out|MEMBER_OF:out|MANAGED_BY:out": 3
    }
   },
+  "A PR fixed incident {Incident}. Who is the manager of the team its author belongs to?": {
+   "n": 1,
+   "fail": 0,
+   "hits": {
+    "Incident|FIXES:in|AUTHORED_BY:out|MEMBER_OF:out|MANAGED_BY:out": 1
+   }
+  },
+  "Who manages the team of the person who authored the PR that fixed incident {Incident}?": {
+   "n": 2,
+   "fail": 0,
+   "hits": {
+    "Incident|FIXES:in|AUTHORED_BY:out|MEMBER_OF:out|MANAGED_BY:out": 2,
+    "Incident|FIXES:in|AUTHORED_BY:out|WORKS_ON:out|OWNED_BY:out|MANAGED_BY:out": 1,
+    "Incident|FIXES:in|AUTHORED_BY:out": 1
+   }
+  },
   "Which team owns the project containing the service affected by incident {Incident}?": {
    "n": 1,
    "fail": 0,
@@ -58,12 +74,12 @@
    }
   },
   "{Person} works on some project. Which person is on call for the team owning that project?": {
-   "n": 2,
+   "n": 3,
    "fail": 0,
    "hits": {
-    "Person|WORKS_ON:out|OWNED_BY:out|ON_CALL:out": 2,
-    "Person|WORKS_ON:out|OWNED_BY:out|MANAGED_BY:out|MEMBER_OF:out|ON_CALL:out": 2,
-    "Person|WORKS_ON:out|OWNED_BY:out|MEMBER_OF:in|MANAGED_BY:in|ON_CALL:out": 2
+    "Person|WORKS_ON:out|OWNED_BY:out|ON_CALL:out": 3,
+    "Person|WORKS_ON:out|OWNED_BY:out|MANAGED_BY:out|MEMBER_OF:out|ON_CALL:out": 3,
+    "Person|WORKS_ON:out|OWNED_BY:out|MEMBER_OF:in|MANAGED_BY:in|ON_CALL:out": 3
    }
   },
   "Who is on call for the team that owns the project service {Service} is part of?": {
@@ -73,21 +89,6 @@
     "Service|PART_OF:out|OWNED_BY:out|ON_CALL:out": 2,
     "Service|PART_OF:out|OWNED_BY:out|MANAGED_BY:out|MEMBER_OF:out|ON_CALL:out": 2,
     "Service|PART_OF:out|OWNED_BY:out|MEMBER_OF:in|MANAGED_BY:in|ON_CALL:out": 2
-   }
-  },
-  "Who manages the team of the person who authored the PR that fixed incident {Incident}?": {
-   "n": 2,
-   "fail": 0,
-   "hits": {
-    "Incident|FIXES:in|AUTHORED_BY:out": 1,
-    "Incident|FIXES:in|AUTHORED_BY:out|MEMBER_OF:out|MANAGED_BY:out": 2
-   }
-  },
-  "A PR fixed incident {Incident}. Who is the manager of the team its author belongs to?": {
-   "n": 2,
-   "fail": 0,
-   "hits": {
-    "Incident|FIXES:in|AUTHORED_BY:out|MEMBER_OF:out|MANAGED_BY:out": 2
    }
   }
  },
@@ -112,19 +113,6 @@
    "failures": 0,
    "support": [
     {
-     "start": "doc:35",
-     "provenance": [
-      [
-       "relation:001384250b57f53c0c63e272",
-       1
-      ],
-      [
-       "relation:15e63f7b668a676b39ad7521",
-       1
-      ]
-     ]
-    },
-    {
      "start": "doc:53",
      "provenance": [
       [
@@ -133,6 +121,19 @@
       ],
       [
        "relation:4d6e7814d812996c6801f0fc",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "doc:35",
+     "provenance": [
+      [
+       "relation:001384250b57f53c0c63e272",
+       1
+      ],
+      [
+       "relation:15e63f7b668a676b39ad7521",
        1
       ]
      ]
@@ -282,23 +283,6 @@
    "failures": 0,
    "support": [
     {
-     "start": "person:85",
-     "provenance": [
-      [
-       "relation:206948ee067caa5639d49b6d",
-       1
-      ],
-      [
-       "relation:fca9c66fe7b86c6dc682509b",
-       1
-      ],
-      [
-       "relation:6338d9987511530c3b534800",
-       1
-      ]
-     ]
-    },
-    {
      "start": "person:117",
      "provenance": [
       [
@@ -311,6 +295,23 @@
       ],
       [
        "relation:8be4429d77bdbccdf45578ad",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "person:85",
+     "provenance": [
+      [
+       "relation:206948ee067caa5639d49b6d",
+       1
+      ],
+      [
+       "relation:fca9c66fe7b86c6dc682509b",
+       1
+      ],
+      [
+       "relation:6338d9987511530c3b534800",
        1
       ]
      ]
@@ -348,11 +349,28 @@
        1
       ]
      ]
+    },
+    {
+     "start": "person:305",
+     "provenance": [
+      [
+       "relation:cb7f5aeb032507e301a82be5",
+       1
+      ],
+      [
+       "relation:335eb3eb36842b9c362819ab",
+       1
+      ],
+      [
+       "relation:a15dd28393b29afc9cb37bc7",
+       1
+      ]
+     ]
     }
    ],
    "exemplars": [
-    "Who is currently on call for the team that owns the project {Person} works on?",
-    "{Person} works on some project. Which person is on call for the team owning that project?"
+    "{Person} works on some project. Which person is on call for the team owning that project?",
+    "Who is currently on call for the team that owns the project {Person} works on?"
    ],
    "uses": 3,
    "events": [
@@ -360,7 +378,7 @@
      "t": 2,
      "event": "promoted",
      "version": 1,
-     "support": 4
+     "support": 5
     }
    ],
    "signature": "(Person)-[WORKS_ON]->()-[OWNED_BY]->()-[ON_CALL]->()",
@@ -398,31 +416,6 @@
    "failures": 0,
    "support": [
     {
-     "start": "person:85",
-     "provenance": [
-      [
-       "relation:206948ee067caa5639d49b6d",
-       1
-      ],
-      [
-       "relation:fca9c66fe7b86c6dc682509b",
-       1
-      ],
-      [
-       "relation:c7dc047823d17dc9b15f83b3",
-       1
-      ],
-      [
-       "relation:43608288c96fefb871f16161",
-       1
-      ],
-      [
-       "relation:6338d9987511530c3b534800",
-       1
-      ]
-     ]
-    },
-    {
      "start": "person:117",
      "provenance": [
       [
@@ -443,6 +436,31 @@
       ],
       [
        "relation:8be4429d77bdbccdf45578ad",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "person:85",
+     "provenance": [
+      [
+       "relation:206948ee067caa5639d49b6d",
+       1
+      ],
+      [
+       "relation:fca9c66fe7b86c6dc682509b",
+       1
+      ],
+      [
+       "relation:c7dc047823d17dc9b15f83b3",
+       1
+      ],
+      [
+       "relation:43608288c96fefb871f16161",
+       1
+      ],
+      [
+       "relation:6338d9987511530c3b534800",
        1
       ]
      ]
@@ -493,6 +511,31 @@
       ],
       [
        "relation:e2ea7efb7cf6885567dd4ca9",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "person:305",
+     "provenance": [
+      [
+       "relation:cb7f5aeb032507e301a82be5",
+       1
+      ],
+      [
+       "relation:335eb3eb36842b9c362819ab",
+       1
+      ],
+      [
+       "relation:1435f30e35169cfc7b96ef6e",
+       1
+      ],
+      [
+       "relation:6c40f3683b791c8acb2b54a2",
+       1
+      ],
+      [
+       "relation:a15dd28393b29afc9cb37bc7",
        1
       ]
      ]
@@ -536,31 +579,6 @@
    "failures": 0,
    "support": [
     {
-     "start": "person:85",
-     "provenance": [
-      [
-       "relation:206948ee067caa5639d49b6d",
-       1
-      ],
-      [
-       "relation:fca9c66fe7b86c6dc682509b",
-       1
-      ],
-      [
-       "relation:43608288c96fefb871f16161",
-       1
-      ],
-      [
-       "relation:c7dc047823d17dc9b15f83b3",
-       1
-      ],
-      [
-       "relation:6338d9987511530c3b534800",
-       1
-      ]
-     ]
-    },
-    {
      "start": "person:117",
      "provenance": [
       [
@@ -581,6 +599,31 @@
       ],
       [
        "relation:8be4429d77bdbccdf45578ad",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "person:85",
+     "provenance": [
+      [
+       "relation:206948ee067caa5639d49b6d",
+       1
+      ],
+      [
+       "relation:fca9c66fe7b86c6dc682509b",
+       1
+      ],
+      [
+       "relation:43608288c96fefb871f16161",
+       1
+      ],
+      [
+       "relation:c7dc047823d17dc9b15f83b3",
+       1
+      ],
+      [
+       "relation:6338d9987511530c3b534800",
        1
       ]
      ]
@@ -634,6 +677,31 @@
        1
       ]
      ]
+    },
+    {
+     "start": "person:305",
+     "provenance": [
+      [
+       "relation:cb7f5aeb032507e301a82be5",
+       1
+      ],
+      [
+       "relation:335eb3eb36842b9c362819ab",
+       1
+      ],
+      [
+       "relation:6c40f3683b791c8acb2b54a2",
+       1
+      ],
+      [
+       "relation:1435f30e35169cfc7b96ef6e",
+       1
+      ],
+      [
+       "relation:a15dd28393b29afc9cb37bc7",
+       1
+      ]
+     ]
     }
    ],
    "exemplars": [],
@@ -666,23 +734,6 @@
    "failures": 0,
    "support": [
     {
-     "start": "service:130",
-     "provenance": [
-      [
-       "relation:54826926c2afe0ef58b0e5b6",
-       1
-      ],
-      [
-       "relation:fc3b24146c8381c4e4755515",
-       1
-      ],
-      [
-       "relation:3b4d5532d50eead3201cec2d",
-       1
-      ]
-     ]
-    },
-    {
      "start": "service:165",
      "provenance": [
       [
@@ -700,18 +751,18 @@
      ]
     },
     {
-     "start": "service:148",
+     "start": "service:130",
      "provenance": [
       [
-       "relation:7ce1f8a435e303de7051d564",
+       "relation:54826926c2afe0ef58b0e5b6",
        1
       ],
       [
-       "relation:8f4bcce8fe00befb8d8fc155",
+       "relation:fc3b24146c8381c4e4755515",
        1
       ],
       [
-       "relation:7f302619e803cbad6a05e334",
+       "relation:3b4d5532d50eead3201cec2d",
        1
       ]
      ]
@@ -734,18 +785,18 @@
      ]
     },
     {
-     "start": "service:75",
+     "start": "service:148",
      "provenance": [
       [
-       "relation:ef0faafa939a81e49a034a03",
+       "relation:7ce1f8a435e303de7051d564",
        1
       ],
       [
-       "relation:01ce221d136398c935771ec0",
+       "relation:8f4bcce8fe00befb8d8fc155",
        1
       ],
       [
-       "relation:0783d98ec2473af52006c26b",
+       "relation:7f302619e803cbad6a05e334",
        1
       ]
      ]
@@ -763,6 +814,23 @@
       ],
       [
        "relation:e208c48c3ffb07fefcc06593",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:75",
+     "provenance": [
+      [
+       "relation:ef0faafa939a81e49a034a03",
+       1
+      ],
+      [
+       "relation:01ce221d136398c935771ec0",
+       1
+      ],
+      [
+       "relation:0783d98ec2473af52006c26b",
        1
       ]
      ]
@@ -816,31 +884,6 @@
    "failures": 0,
    "support": [
     {
-     "start": "service:130",
-     "provenance": [
-      [
-       "relation:54826926c2afe0ef58b0e5b6",
-       1
-      ],
-      [
-       "relation:fc3b24146c8381c4e4755515",
-       1
-      ],
-      [
-       "relation:b2443edf54a0900ace11feb5",
-       1
-      ],
-      [
-       "relation:23c7c56e4518a9f3eaf654df",
-       1
-      ],
-      [
-       "relation:3b4d5532d50eead3201cec2d",
-       1
-      ]
-     ]
-    },
-    {
      "start": "service:165",
      "provenance": [
       [
@@ -866,26 +909,26 @@
      ]
     },
     {
-     "start": "service:148",
+     "start": "service:130",
      "provenance": [
       [
-       "relation:7ce1f8a435e303de7051d564",
+       "relation:54826926c2afe0ef58b0e5b6",
        1
       ],
       [
-       "relation:8f4bcce8fe00befb8d8fc155",
+       "relation:fc3b24146c8381c4e4755515",
        1
       ],
       [
-       "relation:dd182d7d17c1bff15c4b2143",
+       "relation:b2443edf54a0900ace11feb5",
        1
       ],
       [
-       "relation:55677678bbe59dca59d218cb",
+       "relation:23c7c56e4518a9f3eaf654df",
        1
       ],
       [
-       "relation:7f302619e803cbad6a05e334",
+       "relation:3b4d5532d50eead3201cec2d",
        1
       ]
      ]
@@ -916,26 +959,26 @@
      ]
     },
     {
-     "start": "service:75",
+     "start": "service:148",
      "provenance": [
       [
-       "relation:ef0faafa939a81e49a034a03",
+       "relation:7ce1f8a435e303de7051d564",
        1
       ],
       [
-       "relation:01ce221d136398c935771ec0",
+       "relation:8f4bcce8fe00befb8d8fc155",
        1
       ],
       [
-       "relation:ddd83a2eef438d3b6ef77092",
+       "relation:dd182d7d17c1bff15c4b2143",
        1
       ],
       [
-       "relation:82e50dcf8bcd4610b6d45d67",
+       "relation:55677678bbe59dca59d218cb",
        1
       ],
       [
-       "relation:0783d98ec2473af52006c26b",
+       "relation:7f302619e803cbad6a05e334",
        1
       ]
      ]
@@ -961,6 +1004,31 @@
       ],
       [
        "relation:e208c48c3ffb07fefcc06593",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:75",
+     "provenance": [
+      [
+       "relation:ef0faafa939a81e49a034a03",
+       1
+      ],
+      [
+       "relation:01ce221d136398c935771ec0",
+       1
+      ],
+      [
+       "relation:ddd83a2eef438d3b6ef77092",
+       1
+      ],
+      [
+       "relation:82e50dcf8bcd4610b6d45d67",
+       1
+      ],
+      [
+       "relation:0783d98ec2473af52006c26b",
        1
       ]
      ]
@@ -1004,31 +1072,6 @@
    "failures": 0,
    "support": [
     {
-     "start": "service:130",
-     "provenance": [
-      [
-       "relation:54826926c2afe0ef58b0e5b6",
-       1
-      ],
-      [
-       "relation:fc3b24146c8381c4e4755515",
-       1
-      ],
-      [
-       "relation:23c7c56e4518a9f3eaf654df",
-       1
-      ],
-      [
-       "relation:b2443edf54a0900ace11feb5",
-       1
-      ],
-      [
-       "relation:3b4d5532d50eead3201cec2d",
-       1
-      ]
-     ]
-    },
-    {
      "start": "service:165",
      "provenance": [
       [
@@ -1054,26 +1097,26 @@
      ]
     },
     {
-     "start": "service:148",
+     "start": "service:130",
      "provenance": [
       [
-       "relation:7ce1f8a435e303de7051d564",
+       "relation:54826926c2afe0ef58b0e5b6",
        1
       ],
       [
-       "relation:8f4bcce8fe00befb8d8fc155",
+       "relation:fc3b24146c8381c4e4755515",
        1
       ],
       [
-       "relation:55677678bbe59dca59d218cb",
+       "relation:23c7c56e4518a9f3eaf654df",
        1
       ],
       [
-       "relation:dd182d7d17c1bff15c4b2143",
+       "relation:b2443edf54a0900ace11feb5",
        1
       ],
       [
-       "relation:7f302619e803cbad6a05e334",
+       "relation:3b4d5532d50eead3201cec2d",
        1
       ]
      ]
@@ -1104,26 +1147,26 @@
      ]
     },
     {
-     "start": "service:75",
+     "start": "service:148",
      "provenance": [
       [
-       "relation:ef0faafa939a81e49a034a03",
+       "relation:7ce1f8a435e303de7051d564",
        1
       ],
       [
-       "relation:01ce221d136398c935771ec0",
+       "relation:8f4bcce8fe00befb8d8fc155",
        1
       ],
       [
-       "relation:82e50dcf8bcd4610b6d45d67",
+       "relation:55677678bbe59dca59d218cb",
        1
       ],
       [
-       "relation:ddd83a2eef438d3b6ef77092",
+       "relation:dd182d7d17c1bff15c4b2143",
        1
       ],
       [
-       "relation:0783d98ec2473af52006c26b",
+       "relation:7f302619e803cbad6a05e334",
        1
       ]
      ]
@@ -1149,6 +1192,31 @@
       ],
       [
        "relation:e208c48c3ffb07fefcc06593",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "service:75",
+     "provenance": [
+      [
+       "relation:ef0faafa939a81e49a034a03",
+       1
+      ],
+      [
+       "relation:01ce221d136398c935771ec0",
+       1
+      ],
+      [
+       "relation:82e50dcf8bcd4610b6d45d67",
+       1
+      ],
+      [
+       "relation:ddd83a2eef438d3b6ef77092",
+       1
+      ],
+      [
+       "relation:0783d98ec2473af52006c26b",
        1
       ]
      ]
@@ -1429,6 +1497,176 @@
    "success_rate": 0.0
   },
   {
+   "id": "Rf35e",
+   "start_type": "Incident",
+   "hops": [
+    [
+     "FIXES",
+     "in"
+    ],
+    [
+     "AUTHORED_BY",
+     "out"
+    ],
+    [
+     "MEMBER_OF",
+     "out"
+    ],
+    [
+     "MANAGED_BY",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "active",
+   "version": 1,
+   "successes": 3,
+   "failures": 0,
+   "support": [
+    {
+     "start": "incident:548",
+     "provenance": [
+      [
+       "relation:4617dcee6acdde32a4cafedd",
+       1
+      ],
+      [
+       "relation:c58bc64f3a376333adbdeae6",
+       1
+      ],
+      [
+       "relation:7bf7bbaabd6b700859cddf0e",
+       1
+      ],
+      [
+       "relation:7d4bfe32dc5bc7bae700fd96",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "incident:331",
+     "provenance": [
+      [
+       "relation:76261e16c0442f4e500ce516",
+       1
+      ],
+      [
+       "relation:604cae7f54a0b178a3fc07d5",
+       1
+      ],
+      [
+       "relation:57c570fcd07f4d8fd5052f48",
+       1
+      ],
+      [
+       "relation:1435f30e35169cfc7b96ef6e",
+       1
+      ]
+     ]
+    },
+    {
+     "start": "incident:583",
+     "provenance": [
+      [
+       "relation:b48351135965c3b43979dc15",
+       1
+      ],
+      [
+       "relation:5e6fd8f55bcddb8aa07a840b",
+       1
+      ],
+      [
+       "relation:728256b01abe8cd4abd73ddb",
+       1
+      ],
+      [
+       "relation:7847a97f89abd094c3d77150",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [
+    "Who manages the team of the person who authored the PR that fixed incident {Incident}?",
+    "A PR fixed incident {Incident}. Who is the manager of the team its author belongs to?"
+   ],
+   "uses": 3,
+   "events": [
+    {
+     "t": 3,
+     "event": "promoted",
+     "version": 1,
+     "support": 3
+    }
+   ],
+   "signature": "(Incident)<-[FIXES]-()-[AUTHORED_BY]->()-[MEMBER_OF]->()-[MANAGED_BY]->()",
+   "success_rate": 1.0
+  },
+  {
+   "id": "R8e73",
+   "start_type": "Incident",
+   "hops": [
+    [
+     "FIXES",
+     "in"
+    ],
+    [
+     "AUTHORED_BY",
+     "out"
+    ],
+    [
+     "WORKS_ON",
+     "out"
+    ],
+    [
+     "OWNED_BY",
+     "out"
+    ],
+    [
+     "MANAGED_BY",
+     "out"
+    ]
+   ],
+   "answer_type": "",
+   "status": "candidate",
+   "version": 0,
+   "successes": 0,
+   "failures": 0,
+   "support": [
+    {
+     "start": "incident:331",
+     "provenance": [
+      [
+       "relation:76261e16c0442f4e500ce516",
+       1
+      ],
+      [
+       "relation:604cae7f54a0b178a3fc07d5",
+       1
+      ],
+      [
+       "relation:880adc60a4c2de37128827c9",
+       1
+      ],
+      [
+       "relation:6c1c46cbf3c1a3c11771af57",
+       1
+      ],
+      [
+       "relation:1435f30e35169cfc7b96ef6e",
+       1
+      ]
+     ]
+    }
+   ],
+   "exemplars": [],
+   "uses": 0,
+   "events": [],
+   "signature": "(Incident)<-[FIXES]-()-[AUTHORED_BY]->()-[WORKS_ON]->()-[OWNED_BY]->()-[MANAGED_BY]->()",
+   "success_rate": 0.0
+  },
+  {
    "id": "R80bb",
    "start_type": "Incident",
    "hops": [
@@ -1465,134 +1703,6 @@
    "uses": 0,
    "events": [],
    "signature": "(Incident)<-[FIXES]-()-[AUTHORED_BY]->()",
-   "success_rate": 0.0
-  },
-  {
-   "id": "Rf35e",
-   "start_type": "Incident",
-   "hops": [
-    [
-     "FIXES",
-     "in"
-    ],
-    [
-     "AUTHORED_BY",
-     "out"
-    ],
-    [
-     "MEMBER_OF",
-     "out"
-    ],
-    [
-     "MANAGED_BY",
-     "out"
-    ]
-   ],
-   "answer_type": "",
-   "status": "active",
-   "version": 1,
-   "successes": 0,
-   "failures": 0,
-   "support": [
-    {
-     "start": "incident:583",
-     "provenance": [
-      [
-       "relation:b48351135965c3b43979dc15",
-       1
-      ],
-      [
-       "relation:5e6fd8f55bcddb8aa07a840b",
-       1
-      ],
-      [
-       "relation:728256b01abe8cd4abd73ddb",
-       1
-      ],
-      [
-       "relation:7847a97f89abd094c3d77150",
-       1
-      ]
-     ]
-    },
-    {
-     "start": "incident:497",
-     "provenance": [
-      [
-       "relation:cb3aeed4f710f321ed1007f0",
-       1
-      ],
-      [
-       "relation:c9f6146c5a53f6b182abb441",
-       1
-      ],
-      [
-       "relation:5e792299a084fbf94ee4d978",
-       1
-      ],
-      [
-       "relation:e5695e3b20c341589cc041bb",
-       1
-      ]
-     ]
-    },
-    {
-     "start": "incident:55",
-     "provenance": [
-      [
-       "relation:d61881c5f7bcc54ef19dc68e",
-       1
-      ],
-      [
-       "relation:c9901e29c30bdf6b9237d66c",
-       1
-      ],
-      [
-       "relation:1e687d5217a5898c7182e056",
-       1
-      ],
-      [
-       "relation:dd182d7d17c1bff15c4b2143",
-       1
-      ]
-     ]
-    },
-    {
-     "start": "incident:322",
-     "provenance": [
-      [
-       "relation:6f5248a4da7d019a60c88047",
-       1
-      ],
-      [
-       "relation:f561c673514caae2fc8aa8a4",
-       1
-      ],
-      [
-       "relation:ddb9f22776993c904b085c6b",
-       1
-      ],
-      [
-       "relation:fd8715eda0ab0ce068db0f73",
-       1
-      ]
-     ]
-    }
-   ],
-   "exemplars": [
-    "A PR fixed incident {Incident}. Who is the manager of the team its author belongs to?",
-    "Who manages the team of the person who authored the PR that fixed incident {Incident}?"
-   ],
-   "uses": 0,
-   "events": [
-    {
-     "t": 4,
-     "event": "promoted",
-     "version": 1,
-     "support": 4
-    }
-   ],
-   "signature": "(Incident)<-[FIXES]-()-[AUTHORED_BY]->()-[MEMBER_OF]->()-[MANAGED_BY]->()",
    "success_rate": 0.0
   }
  ]

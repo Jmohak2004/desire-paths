@@ -13,8 +13,91 @@ rebuild themselves against the current graph.
 > Desire path (n.): the trail worn into the grass by people taking the route the pavement should have taken.
 
 <!-- RESULTS:START -->
-_Run `make eval` to fill this section from `results/`._
+## Results (measured, `make eval`)
+
+Held-out questions about entities never seen in training. Seeds [0, 1, 2] (mean ± std across seeds), model `poolside/laguna-xs-2.1` at temperature 0, backend **hydradb**, generated 2026-11-16 04:16:19.
+
+- After 4 learning rounds, **C uses 86% fewer LLM calls and 86% fewer tokens per task than B** (the same agent without routes), at accuracy 1.00 vs 1.00.
+- Iterative vector RAG (A) reaches 0.34 accuracy on the same questions.
+
+![learning curve](docs/img/curve.png)
+
+#### Held-out, after 4 learning rounds
+
+| agent | accuracy | LLM calls / q | input tok / q | output tok / q | latency s / q | graph calls / q |
+|---|---|---|---|---|---|---|
+| A_vector | 0.34 ± 0.05 | 2.13 ± 0.08 | 601 ± 31 | 27 ± 1 | 1.90 ± 0.50 | 0.0 ± 0.0 |
+| B_graph | 1.00 ± 0.00 | 4.83 ± 0.00 | 3155 ± 26 | 77 ± 0 | 6.70 ± 0.58 | 3.8 ± 0.0 |
+| C_desire | 1.00 ± 0.00 | 0.67 ± 0.05 | 440 ± 27 | 12 ± 1 | 2.70 ± 0.31 | 2.5 ± 0.0 |
+
+
+#### Held-out, round 0 (before any learning)
+
+| agent | accuracy | LLM calls / q | input tok / q | output tok / q | latency s / q | graph calls / q |
+|---|---|---|---|---|---|---|
+| A_vector | 0.34 ± 0.05 | 2.13 ± 0.08 | 601 ± 31 | 27 ± 1 | 1.90 ± 0.50 | 0.0 ± 0.0 |
+| B_graph | 1.00 ± 0.00 | 4.83 ± 0.00 | 3155 ± 26 | 77 ± 0 | 6.70 ± 0.58 | 3.8 ± 0.0 |
+| C_desire | 1.00 ± 0.00 | 4.83 ± 0.00 | 3155 ± 26 | 77 ± 0 | 6.64 ± 0.61 | 3.8 ± 0.0 |
+
+
+#### C learning curve (held-out, per round)
+
+| round | accuracy | LLM calls / q | input tok / q | routed share |
+|---|---|---|---|---|
+| 0 | 1.00 ± 0.00 | 4.83 ± 0.00 | 3155 | 0.00 |
+| 1 | 1.00 ± 0.00 | 4.63 ± 0.49 | 2720 | 0.21 |
+| 2 | 1.00 ± 0.00 | 1.74 ± 0.34 | 1118 | 0.78 |
+| 3 | 1.00 ± 0.00 | 0.67 ± 0.05 | 440 | 0.94 |
+| 4 | 1.00 ± 0.00 | 0.67 ± 0.05 | 440 | 0.94 |
+
+A and B hold no learning state: measured once per seed (round 0) and drawn flat across rounds.
+
+### Heal test (`results/heal.json`)
+
+Question: “Who is currently on call for the team that owns the project Arjun Mehta works on?”. One fact changes: on-call for Insights Platform, Chloe Ilic → Chloe Jansen.
+
+| phase | Desire Paths (C) | LLM calls | stale-route agent |
+|---|---|---|---|
+| before change | Chloe Ilic ✓ (route Rc346) | 0 | Chloe Ilic ✓ |
+| after change template retired | Chloe Jansen ✓ (fallback walk) | 6 | Chloe Ilic ✗ |
+| after rebuild | Chloe Jansen ✓ (route Rc346) | 0 | Chloe Ilic ✗ |
+
+Retired: Rc346 v1. Rebuilt: Rc346 v2.
+
+### Savings calculator (`results/savings.md`)
+
+Per-task tokens are measured (held-out, final learning round, mean over seeds). Prices are inputs.
+
+| agent | accuracy | LLM calls / task | input tok / task | output tok / task |
+|---|---|---|---|---|
+| A_vector | 0.34 | 2.13 | 601 | 27 |
+| B_graph | 1.00 | 4.83 | 3155 | 77 |
+| C_desire | 1.00 | 0.67 | 440 | 12 |
+
+Cost per 1,000 tasks (USD), and per month at 100,000 tasks:
+
+| price point ($/1M in / out) | A_vector | B_graph | C_desire | C vs B saving | C one-time learning |
+|---|---|---|---|---|---|
+| small-open-model (0.10 / 0.40) | $0.071 ($7/mo) | $0.346 ($35/mo) | $0.049 ($5/mo) | 86% | $0.010 |
+| claude-haiku-5-5 list (0.10 / 0.50) | $0.074 ($7/mo) | $0.354 ($35/mo) | $0.050 ($5/mo) | 86% | $0.010 |
+| claude-sonnet-5-5 list (2.00 / 10.00) | $1.474 ($147/mo) | $7.081 ($708/mo) | $0.995 ($100/mo) | 86% | $0.204 |
+| claude-opus-5-5 list (4.00 / 20.00) | $2.949 ($295/mo) | $14.162 ($1,416/mo) | $1.990 ($199/mo) | 86% | $0.408 |
+
+HydraDB gate (`make gate`): **passed**: selfgraph_insert, route_single_query, versioned_supersede, neighbors, raw_cypher_fallback.
 <!-- RESULTS:END -->
+
+## Demo
+
+Backup recording of the live dashboard: [`docs/demo.mp4`](docs/demo.mp4), made with `make record`. Every answer
+in it was computed live against HydraDB. The 60-second script is in [`docs/demo_script.md`](docs/demo_script.md).
+
+| same held-out question: B walks (5 LLM calls) | C uses the learned route (0 LLM calls, 1 graph query) |
+|---|---|
+| ![B](docs/img/ask_b.png) | ![C](docs/img/ask_c.png) |
+
+| one fact changes: route retires, C walks and is still right | rebuilt route v2: back to 0 LLM calls, new fact |
+|---|---|
+| ![after change](docs/img/after_change.png) | ![after rebuild](docs/img/after_rebuild.png) |
 
 ## Why this earns its place over a vector store
 
@@ -111,6 +194,16 @@ calls.
   a verifier.
 - **Question shapes** are the question text with the entity masked, matched exactly. Held-out questions include a
   phrasing never seen in train; those go through the one-call router. Clustering paraphrases is future work.
+- **Known router miss.** 6 of the 108 final held-out questions fall back to the full walk, and all 6 use the same
+  unseen phrasing ("I need to page someone about X's project…"). The router picks the wrong route with entity
+  "X's project"; the entity check rejects it, so C walks the graph and still answers correctly. It costs about 6 LLM
+  calls instead of 1.
+- **Run-to-run variation.** HydraDB's keyword search can return tied scores in a different order between runs.
+  When a question's entity falls out of the top 5, the shape index misses and the router makes one extra LLM call.
+  Re-running `make eval` from the cache reproduced A, B and seed 0 exactly. C's final calls per task were 0.65 on
+  the first run and 0.67 on the rerun; accuracy was unchanged.
+- **Latency** = measured LLM time per call (NVIDIA free tier, so queueing is included) plus graph time measured on
+  every run. Held-out questions are scored one at a time.
 - **HydraDB** here is a single local v0.4.0 node built from source, not HydraDB Cloud. The same code points at any
   Bolt endpoint via `HYDRADB_URI`.
 
