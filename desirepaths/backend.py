@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import uuid
 from dataclasses import dataclass
 from typing import Any
 
@@ -37,19 +38,25 @@ def hydradb_settings() -> tuple[str, str] | None:
     return None
 
 
-def make_selfgraph(kuzu_path: str, schema: dict | None, fresh: bool, namespace: str = "default") -> tuple[SelfGraph, Dialect]:
+def make_selfgraph(kuzu_path: str, schema: dict | None, fresh: bool, namespace: str = "default") -> tuple[SelfGraph, Dialect, str]:
+    """Build a SelfGraph on HydraDB when HYDRADB_URI is set, else on embedded Kuzu. Returns (graph, dialect, namespace).
+
+    HydraDB keeps data across runs, so a fresh graph gets its own namespace (suffix) instead of a wiped file.
+    """
     hs = hydradb_settings()
+    if hs and fresh:
+        namespace = f"{namespace}-{uuid.uuid4().hex[:6]}"
     kw: dict[str, Any] = dict(schema=schema, contradiction="supersede", namespace=namespace)
     if hs:
         from selfgraph import HydraDBStore
 
         store = HydraDBStore(hs[0], auth=hs[1] or None, database=os.environ.get("HYDRADB_DATABASE"))
-        return SelfGraph(store=store, **kw), HYDRADB
+        return SelfGraph(store=store, **kw), HYDRADB, namespace
     if fresh:
         shutil.rmtree(kuzu_path, ignore_errors=True)
         if os.path.exists(kuzu_path):
             os.remove(kuzu_path)
-    return SelfGraph(store=KuzuStore(kuzu_path), **kw), KUZU
+    return SelfGraph(store=KuzuStore(kuzu_path), **kw), KUZU, namespace
 
 
 def _doc(d: Any) -> dict:

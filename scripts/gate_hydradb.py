@@ -38,7 +38,7 @@ async def main() -> int:
                             {"type": "OWNED_BY", "from": {"types": ["Project"], "max_count": 1}, "to": {"types": ["Team"]}},
                             {"type": "ON_CALL", "from": {"types": ["Team"], "max_count": 1}, "to": {"types": ["Person"]}}]}
     try:
-        sg, d = make_selfgraph("", schema, fresh=False, namespace=ns)
+        sg, d, ns = make_selfgraph("", schema, fresh=False, namespace=ns)
         assert d is HYDRADB
         async with sg:
             b = GraphBackend(sg, d, namespace=ns)

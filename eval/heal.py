@@ -74,7 +74,7 @@ async def main() -> None:
     train, test = make_questions(g, args.train_per_template, args.test_per_template, seed)
     path = str(RESULTS / "graphs" / f"heal_seed{seed}.kuzu")
     Path(path).parent.mkdir(parents=True, exist_ok=True)
-    sg, dialect = make_selfgraph(path, selfgraph_schema(), fresh=True, namespace=f"heal{seed}")
+    sg, dialect, ns = make_selfgraph(path, selfgraph_schema(), fresh=True, namespace=f"heal{seed}")
     timeline: list[dict] = []
 
     def log(event, **kw):
@@ -84,7 +84,7 @@ async def main() -> None:
 
     t0 = time.time()
     async with sg:
-        backend = GraphBackend(sg, dialect, namespace=f"heal{seed}")
+        backend = GraphBackend(sg, dialect, namespace=ns)
         await backend.load(g)
         llm = LLM()
         lib = RouteLibrary(min_support=3)

@@ -32,9 +32,9 @@ STATE: dict = {}
 async def boot() -> None:
     g = generate(SEED)
     train, test = make_questions(g, 8, 6, SEED)
-    sg, dialect = make_selfgraph(str(RESULTS / "graphs" / "dash_seed0.kuzu"), selfgraph_schema(), fresh=True, namespace="dash0")
+    sg, dialect, ns = make_selfgraph(str(RESULTS / "graphs" / "dash_seed0.kuzu"), selfgraph_schema(), fresh=True, namespace="dash0")
     await sg.__aenter__()
-    backend = GraphBackend(sg, dialect, namespace="dash0")
+    backend = GraphBackend(sg, dialect, namespace=ns)
     t0 = time.time()
     await backend.load(g)
     routes_path = RESULTS / f"routes_seed{SEED}.json"

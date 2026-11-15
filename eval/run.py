@@ -49,10 +49,10 @@ async def run_seed(seed: int, args, llm: LLM, emb: Embedder) -> list[dict]:
     train, test = make_questions(g, args.train_per_template, args.test_per_template, seed)
     kpath = str(RESULTS / "graphs" / f"seed{seed}.kuzu")
     Path(kpath).parent.mkdir(parents=True, exist_ok=True)
-    sg, dialect = make_selfgraph(kpath, selfgraph_schema(), fresh=True, namespace=f"seed{seed}")
+    sg, dialect, ns = make_selfgraph(kpath, selfgraph_schema(), fresh=True, namespace=f"seed{seed}")
     rows: list[dict] = []
     async with sg:
-        backend = GraphBackend(sg, dialect, namespace=f"seed{seed}")
+        backend = GraphBackend(sg, dialect, namespace=ns)
         t0 = time.time()
         await backend.load(g)
         print(f"[seed {seed}] backend={dialect.name} loaded {len(g.nodes)} nodes / {len(g.edges)} edges in {time.time()-t0:.1f}s; "

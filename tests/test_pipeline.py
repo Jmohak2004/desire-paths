@@ -46,9 +46,9 @@ class OracleLLM:
 def world(tmp_path_factory):
     g = generate(5, SMALL)
     loop = asyncio.new_event_loop()
-    sg, d = make_selfgraph(str(tmp_path_factory.mktemp("kz") / "p.kuzu"), selfgraph_schema(), fresh=True, namespace="p")
+    sg, d, ns = make_selfgraph(str(tmp_path_factory.mktemp("kz") / "p.kuzu"), selfgraph_schema(), fresh=True, namespace="p")
     loop.run_until_complete(sg.__aenter__())
-    b = GraphBackend(sg, d, namespace="p")
+    b = GraphBackend(sg, d, namespace=ns)
     loop.run_until_complete(b.load(g))
     yield g, b, loop
     loop.run_until_complete(sg.__aexit__(None, None, None))
