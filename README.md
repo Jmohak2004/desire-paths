@@ -171,6 +171,7 @@ make test        # route learning, execution, retirement, pipeline (runs on Hydr
 make eval        # 3 seeds x 4 rounds, heal test, calculator -> results/
 make dashboard   # http://127.0.0.1:8000
 make record      # backup demo video from the live dashboard -> docs/demo.mp4
+make demo        # fresh HydraDB node + dashboard in one command (what to run before recording)
 ```
 
 Without `HYDRADB_URI`, everything runs on SelfGraph's embedded Kuzu store, and the results record which backend
@@ -204,6 +205,9 @@ calls.
   the first run and 0.67 on the rerun; accuracy was unchanged.
 - **Latency** = measured LLM time per call (NVIDIA free tier, so queueing is included) plus graph time measured on
   every run. Held-out questions are scored one at a time.
+- **HydraDB store growth.** Every run loads the graph into a fresh namespace, and SelfGraph applies the namespace
+  as a filter. After many runs the single dev node slowed down a lot: the test suite took 19 minutes, with 2 errors.
+  On a fresh store it passes in 22 s. `make demo` starts from a fresh store, and `make hydradb-reset` wipes it.
 - **HydraDB** here is a single local v0.4.0 node built from source, not HydraDB Cloud. The same code points at any
   Bolt endpoint via `HYDRADB_URI`.
 

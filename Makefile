@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 export PYTHONPATH := .
 
-.PHONY: setup test gate eval eval-quick heal dashboard hydradb record
+.PHONY: setup test gate eval eval-quick heal dashboard hydradb hydradb-reset record demo
 
 setup:
 	python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt
@@ -32,3 +32,10 @@ hydradb:         ## run a local HydraDB v0.4.0 node (build it first: see README)
 
 record:          ## record the backup demo from the running dashboard -> docs/demo.mp4
 	$(PY) scripts/record_demo.py
+
+demo:            ## start HydraDB node (if needed) + dashboard -> http://127.0.0.1:8000
+	scripts/start_demo.sh
+
+hydradb-reset:   ## stop the local node and wipe its (synthetic, regenerable) store
+	-pkill -f target/release/graph-node
+	rm -rf .hydradb/store .hydradb/cache

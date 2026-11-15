@@ -1,26 +1,30 @@
 # STATUS
 
-_Updated: 2026-11-16 ~03:05 IST_
+_Updated: 2026-11-16 ~05:00 IST_
 
 ## Works (verified)
-- **HydraDB v0.4.0**, built from source and running locally (`make hydradb`, Bolt 7687, telemetry off).
-  `make gate` passes all four checks: SelfGraph typed insert, learned route as one Cypher query, versioned
-  supersede, raw Bolt Cypher fallback (`results/gate_hydradb.json`).
-- `make test`: 8 passed, run against live HydraDB. Covers route learning, single-query execution on unseen
-  entities, rejection of coincidental shortcuts, retire-and-rebuild on a fact change, library round-trip, and the
-  end-to-end pipeline.
-- HydraDB and Kuzu return identical search and neighbor results on 12/12 checked questions; routes return gold
-  12/12. A route query on HydraDB takes about 7 ms.
-- Live dashboard on HydraDB: ask (C routes in 1 LLM call), fact change, retire, fallback, rebuild v2, route again.
-- Agents A/B/C on `poolside/laguna-xs-2.1` (Gemma 4 was unusable: see `results/model_probe.md`).
+- **HydraDB v0.4.0**, built from source and running locally (`make hydradb`; Bolt 7687; telemetry off).
+  `make gate` passes: SelfGraph typed insert, learned route as one Cypher query, versioned supersede,
+  neighbors, raw Bolt Cypher fallback (`results/gate_hydradb.json`).
+- `make test`: 9 passed against live HydraDB in 22 s on a fresh store.
+- `make eval`: full pipeline on HydraDB. 3 seeds × 4 rounds, 48 train / 36 held-out questions per seed, then the
+  heal test, savings calculator and README update. Re-running it from the request cache reproduced A, B and
+  seed 0 exactly (see run-to-run note in the README).
+- Headline (held-out, after 4 rounds, mean ± std over 3 seeds): C at 1.00 accuracy with 0.67 LLM calls and 440
+  input tokens per task, against B at 1.00 with 4.83 calls and 3,155 tokens. That is 86% fewer calls and tokens.
+  Latency per task: 2.7 s vs 6.7 s. Vector RAG (A) reaches 0.34.
+- Heal test: one on-call fact changes, the dependent route retires, C walks the graph and stays correct, the route
+  rebuilds as v2 and is back to 0 LLM calls. The stale-route agent returns the superseded person.
+- Dashboard (`make demo`): measured curves and tables, live ask (B vs C), live fact change, retire, rebuild,
+  route library, savings calculator. Backup video: `docs/demo.mp4`.
 
-## Running
-- Full eval on HydraDB: 3 seeds × 4 rounds, 48 train / 36 held-out per seed.
+## Known limits (also in README "Honest notes")
+- Model is `poolside/laguna-xs-2.1`, because Gemma 4 timed out on NVIDIA's API (`results/model_probe.md`).
+- 6 of 108 final held-out questions fall back to the walk, all with one unseen phrasing (router miss). They are
+  caught by the entity check, so the answers stay correct.
+- The single dev HydraDB node slows down as namespaces accumulate; `make demo` and `make hydradb-reset` start fresh.
+- A local HydraDB node, not HydraDB Cloud.
 
-## Known limits
-- Vector RAG baseline is weak (~0.4 accuracy). Two stronger prompts were tried and did not help (recorded).
-- Question shapes are exact masked strings; paraphrase clustering is future work.
-- Single local HydraDB node, not HydraDB Cloud.
-
-## Next
-- heal test, calculator, README numbers, demo recording.
+## Next (if there is time)
+- Paraphrase clustering for question shapes; a route-aware router prompt for the one phrasing it misses.
+- Run against HydraDB Cloud by setting `HYDRADB_URI` / `HYDRADB_TOKEN`.
