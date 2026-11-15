@@ -89,7 +89,7 @@ def routes():
     lib: RouteLibrary = STATE["lib"]
     g = STATE["g"]
     out = []
-    for rt in sorted(lib.templates.values(), key=lambda r: (r.status != "active", int(r.id[1:]))):
+    for rt in sorted(lib.templates.values(), key=lambda r: (r.status != "active", r.id)):
         if rt.status == "candidate" and not rt.events:
             continue  # unpromoted hypotheses: shown as a count only
         out.append({"id": rt.id, "status": rt.status, "version": rt.version, "signature": rt.signature(),

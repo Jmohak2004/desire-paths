@@ -79,5 +79,9 @@ def test_c_learns_routes_and_cuts_llm_calls_on_heldout(world):
     assert len(lib.active()) == len(QTEMPLATES)
     routed = [r for r in c_res if r.route]
     assert len(routed) == len(test)
-    assert all(r.meter.calls == 1 and r.graph_calls == 2 for r in routed)  # router + (search, route query)
+    via = [next(s["via"] for s in r.steps if "via" in s) for r in routed]
+    # seen phrasings: shape index, 0 LLM calls (search + route query); unseen phrasing: router, 1 LLM call
+    assert all((v == "shape" and r.meter.calls == 0 and r.graph_calls == 2) or
+               (v == "router" and r.meter.calls == 1 and r.graph_calls == 3) for v, r in zip(via, routed))
+    assert "shape" in via
     assert sum(r.meter.calls for r in c_res) < sum(r.meter.calls for r in b_res) / 3

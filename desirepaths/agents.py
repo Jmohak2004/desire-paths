@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from .llm import LLM, Embedder, Meter, parse_json
-from .routes import Edge, RouteLibrary, Trace, describe, verified_paths
+from .routes import Edge, RouteLibrary, Trace, describe, mask, mentions, verified_paths
 
 
 @dataclass
@@ -73,6 +73,12 @@ def norm(name: str) -> str:
 
 def correct(pred: list[str], gold_names: list[str]) -> bool:
     return bool(pred) and {norm(p) for p in pred} == {norm(g) for g in gold_names}
+
+
+def _same_entity(name: str, mention: str, question: str) -> bool:
+    """The resolved entity is the one named in the question: its name matches the mention and occurs in the question."""
+    n, m = norm(name), norm(mention)
+    return bool(n) and (n == m or (len(m) >= 3 and (m in n or n in m))) and mentions(question, name)
 
 
 def _names(v) -> list[str]:
@@ -214,9 +220,22 @@ of its start type. Routes:
 
 Question: {question}
 
-If one route answers exactly this kind of question, reply {{"route": "<route id>", "entity": "<the exact name of
-the {{start type}} entity mentioned in the question>"}}. If none fits exactly, reply {{"route": "none"}}.
-Reply with exactly one JSON object."""
+A route fits only if its path follows exactly the relations the question asks about, in the same order, starting
+from the entity the question names and ending at the type of thing the question asks for. If one route fits, reply
+{{"route": "<route id>", "entity": "<the exact name of that start entity as written in the question>"}}.
+If none fits exactly, reply {{"route": "none"}}. Reply with exactly one JSON object."""
+
+
+def path_types(start_type: str, hops) -> list[str]:
+    """Entity types along a meta-path, from the schema (for a readable, unambiguous route menu)."""
+    from bench.gen import RELATIONS
+
+    ends = {t: (a, b) for t, a, b, _ in RELATIONS}
+    out = []
+    for rel, d in hops:
+        a, b = ends.get(rel, ("", ""))
+        out.append(b if d == "out" else a)
+    return out
 
 
 class DesirePaths:
@@ -230,12 +249,26 @@ class DesirePaths:
         out = []
         for rt in self.lib.active():
             ex = "; ".join(f'"{e}"' for e in rt.exemplars[:3])
-            out.append(f"- {rt.id}: start type {rt.start_type}; path {describe(rt.start_type, rt.hops)}; examples: {ex}")
+            path = describe(rt.start_type, rt.hops, path_types(rt.start_type, rt.hops))
+            out.append(f"- {rt.id}: answers a {path_types(rt.start_type, rt.hops)[-1]} for a given {rt.start_type}; "
+                       f"path {path}; examples: {ex}")
         return "\n".join(out)
 
-    async def try_route(self, question: str, qb: QB, meter: Meter, res: Result) -> list[str] | None:
+    async def try_route(self, question: str, qb: QB, meter: Meter, res: Result):
+        """Returns (answer names, template, how) or None. how = "shape" (no LLM) or "router" (1 LLM call)."""
         if not self.lib.active():
             return None
+        # 1. shape index: a question shape seen in training maps straight to its learned route, for any entity
+        hits = await qb.search(question[:300])
+        for h in hits:
+            if mentions(question, h["name"]):
+                rt = self.lib.route_for_shape(mask(question, h["name"], h["type"]))
+                if rt is not None and rt.start_type == h["type"]:
+                    rows = await qb.run_route(rt.hops, h["id"])
+                    if rows:
+                        res.steps.append({"route": rt.id, "via": "shape", "start": h["id"], "provenance": rows[0]["provenance"]})
+                        return sorted({qb.b.name(r["answer"]) for r in rows}), rt, "shape"
+        # 2. unseen phrasing: one LLM call picks a route and names the start entity
         out = parse_json(await self.llm.chat(
             [{"role": "user", "content": ROUTER.format(routes=self.route_menu(), question=question)}],
             meter, max_tokens=120, tag="C.router"))
@@ -243,29 +276,40 @@ class DesirePaths:
         res.steps.append({"router": out})
         if rt is None or rt.status != "active":
             return None
-        hits = await qb.search(str(out.get("entity", ""))[:200])
-        start = next((h for h in hits if h["type"] == rt.start_type), None)
+        mention = str(out.get("entity", ""))[:200]
+        hits = await qb.search(mention) if mention else []
+        # entity resolution must agree with the route: right type AND the entity the question names
+        start = next((h for h in hits if h["type"] == rt.start_type and _same_entity(h["name"], mention, question)), None)
         if start is None:
+            res.steps.append({"route_rejected": rt.id, "reason": "start entity not resolved", "mention": mention})
             return None
         rows = await qb.run_route(rt.hops, start["id"])
         if not rows:
             return None
-        res.route = rt.id
-        res.steps.append({"route": rt.id, "start": start["id"], "provenance": rows[0]["provenance"]})
-        return sorted({qb.b.name(r["answer"]) for r in rows})
+        res.steps.append({"route": rt.id, "via": "router", "start": start["id"], "provenance": rows[0]["provenance"]})
+        return sorted({qb.b.name(r["answer"]) for r in rows}), rt, "router"
 
     async def answer(self, question: str, backend, gold_names: list[str] | None = None) -> Result:
         meter = Meter()
         res = Result([], meter)
         qb = QB(backend)
         try:
-            names = await self.try_route(question, qb, meter, res)
-            if names is not None:
-                res.answer = names
-                if self.learning and gold_names is not None:
-                    self.lib.record_use(self.lib.get(res.route), correct(names, gold_names))
-            else:
+            routed = await self.try_route(question, qb, meter, res)
+            if routed is not None:
+                names, rt, how = routed
+                res.answer, res.route = names, rt.id
+                ok = correct(names, gold_names) if gold_names is not None else None
+                if self.learning and ok is not None:
+                    if how == "shape":
+                        self.lib.record_use(rt, ok)  # a shape-index miss is a real route failure
+                    elif ok:
+                        self.lib.record_use(rt, True)
+                    else:
+                        self.lib.record_misroute(rt, question)  # router error: learn the right route by walking
+                        routed = None
+            if routed is None:
                 res.fallback = True
+                res.route = None
                 names, explored, roots = await self.b.walk(question, qb, meter, res)
                 res.answer = names
                 if self.learning and gold_names is not None:
@@ -288,7 +332,7 @@ class DesirePaths:
         t = Trace(question, start, qb.b.etype(start), qb.b.name(start), ans_ids, ok)
         if ok and ans_ids and roots:
             # roots ranked by search order; the question's entity is usually the first exact-name hit
-            ranked = [r for r in roots if norm(qb.b.name(r)) in norm(question)] or roots
+            ranked = [r for r in roots if mentions(question, qb.b.name(r))] or roots
             vp = await verified_paths(qb, explored, ranked[:3], ans_ids)
             if vp:
                 t.start, t.candidates = vp

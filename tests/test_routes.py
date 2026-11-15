@@ -74,7 +74,7 @@ def test_promotion_needs_support_and_success():
     assert lib.promote() == []  # support 2 < 3
     lib.observe(mk(2, True))
     rt = lib.promote()
-    assert [r.id for r in rt] == ["R1"] and rt[0].exemplars == ["q about {Person}"]
+    assert len(rt) == 1 and rt[0].exemplars == ["q about {Person}"]
     for _ in range(3):
         lib.record_use(rt[0], correct=False)  # executions judged wrong -> demoted
     lib.promote()
@@ -142,6 +142,13 @@ def test_library_roundtrips_through_json(tmp_path):
     lib.promote()
     lib.save(str(tmp_path / "l.json"))
     back = RouteLibrary.load(str(tmp_path / "l.json"))
-    rt = back.get("R1")
+    rt = back.active()[0]
     assert rt.status == "active" and rt.hops == hops and rt.depends_on() == {"r1"}
     assert back.on_relation_change("r1") == [rt]
+
+
+def test_mask_is_whole_word_and_ids_are_stable():
+    assert mask("Which project is the description of Ion?", "Ion", "Project") == "Which project is the description of {Project}?"
+    from desirepaths.routes import route_id, route_key
+    k = route_key("Person", [("WORKS_ON", "out")])
+    assert route_id(k) == route_id(k) and route_id(k).startswith("R")

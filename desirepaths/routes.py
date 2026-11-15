@@ -18,6 +18,7 @@ traversals re-earn it.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from collections import deque
@@ -159,11 +160,21 @@ async def verified_paths(backend, explored: list[Edge], roots: list[str], answer
 
 
 def mask(question: str, name: str, etype: str) -> str:
-    return re.sub(re.escape(name), "{" + etype + "}", question, flags=re.IGNORECASE)
+    """The question's shape: the entity name replaced by its type (whole-word match only)."""
+    return re.sub(r"(?<!\w)" + re.escape(name) + r"(?!\w)", "{" + etype + "}", question, flags=re.IGNORECASE)
+
+
+def mentions(question: str, name: str) -> bool:
+    return bool(name) and re.search(r"(?<!\w)" + re.escape(name) + r"(?!\w)", question, flags=re.IGNORECASE) is not None
 
 
 def route_key(start_type: str, hops: list[Hop]) -> str:
     return start_type + "|" + "|".join(f"{r}:{d}" for r, d in hops)
+
+
+def route_id(key: str) -> str:
+    """Stable id from the meta-path itself, so runs (and the request cache) are reproducible under concurrency."""
+    return "R" + hashlib.sha1(key.encode()).hexdigest()[:4]
 
 
 def describe(start_type: str, hops: list[Hop], types: list[str] | None = None) -> str:
@@ -231,8 +242,7 @@ class RouteLibrary:
             key = route_key(t.start_type, c.hops)
             rt = self.templates.get(key)
             if rt is None:
-                self._n += 1
-                rt = RouteTemplate(id=f"R{self._n}", start_type=t.start_type, hops=list(c.hops))
+                rt = RouteTemplate(id=route_id(key), start_type=t.start_type, hops=list(c.hops))
                 self.templates[key] = rt
             rt.support.append(Support(t.start, list(c.provenance)))
             st["hits"][key] = st["hits"].get(key, 0) + 1
@@ -266,7 +276,7 @@ class RouteLibrary:
         for key, rt in self.templates.items():
             att = [(shape, c) for shape, (k, c) in best.items() if k == key]
             support = sum(c for _, c in att)
-            rt.exemplars = [s for s, _ in sorted(att, key=lambda x: -x[1])][: self.max_exemplars]
+            rt.exemplars = [s for s, _ in sorted(att, key=lambda x: (-x[1], x[0]))][: self.max_exemplars]
             used_badly = rt.uses >= 3 and rt.success_rate < self.min_success
             if rt.status == "candidate" and support >= self.min_support and not used_badly:
                 rt.status = "active"
@@ -280,7 +290,19 @@ class RouteLibrary:
         return promoted
 
     def active(self) -> list[RouteTemplate]:
-        return [rt for rt in self.templates.values() if rt.status == "active"]
+        return sorted((rt for rt in self.templates.values() if rt.status == "active"), key=lambda r: r.id)
+
+    def route_for_shape(self, shape: str) -> RouteTemplate | None:
+        """The active route learned for an exact question shape, if any (no LLM needed)."""
+        hit = self._best_by_shape().get(shape)
+        if hit is None:
+            return None
+        rt = self.templates.get(hit[0])
+        return rt if rt is not None and rt.status == "active" else None
+
+    def record_misroute(self, rt: RouteTemplate, question: str) -> None:
+        """The router picked this route for a question it does not answer. A router error, not a route error."""
+        rt.events.append({"t": self.clock, "event": "misrouted_to", "question": question[:120]})
 
     def get(self, rid: str) -> RouteTemplate | None:
         return next((rt for rt in self.templates.values() if rt.id == rid), None)
@@ -350,7 +372,6 @@ class RouteLibrary:
                 support=[Support(s["start"], [tuple(p) for p in s["provenance"]]) for s in t.get("support", [])],
                 exemplars=t.get("exemplars", []), uses=t.get("uses", 0), events=t.get("events", []))
             lib.templates[route_key(rt.start_type, rt.hops)] = rt
-            lib._n = max(lib._n, int(rt.id[1:]) if rt.id[1:].isdigit() else 0)
         return lib
 
     @classmethod

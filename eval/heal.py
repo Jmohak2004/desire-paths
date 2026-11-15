@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 
 from bench.gen import QTEMPLATES, generate, make_questions, walk
-from desirepaths.agents import QB, DesirePaths, GraphAgent, correct
+from desirepaths.agents import QB, DesirePaths, GraphAgent, _same_entity, correct
 from desirepaths.backend import GraphBackend, make_selfgraph, selfgraph_schema
 from desirepaths.llm import LLM, MODEL, Meter, parse_json
 from desirepaths.agents import ROUTER
@@ -51,7 +51,8 @@ class StaleRouteAgent:
         rid = str(out.get("route", ""))
         rt = self.c.lib.get(rid)
         hits = await qb.search(str(out.get("entity", ""))[:200])
-        start = next((h for h in hits if rt and h["type"] == rt.start_type), None)
+        start = next((h for h in hits if rt and h["type"] == rt.start_type
+                      and _same_entity(h["name"], str(out.get("entity", "")), question)), None)
         if rt is None or start is None:
             return {"answer": [], "llm_calls": meter.calls, "note": "no route"}
         key = (rid, start["id"])
