@@ -22,20 +22,20 @@ import time
 from pathlib import Path
 
 from bench.gen import QTEMPLATES, generate, make_questions, walk
-from desirepaths.agents import QB, DesirePaths, GraphAgent, _same_entity, correct
+from desirepaths.agents import QB, DesirePaths, GraphAgent, Result, correct
 from desirepaths.backend import GraphBackend, make_selfgraph, selfgraph_schema
 from desirepaths.llm import LLM, MODEL, Meter, parse_json
 from desirepaths.agents import ROUTER
-from desirepaths.routes import RouteLibrary
+from desirepaths.routes import RouteLibrary, mask, mentions
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 
 
 class StaleRouteAgent:
-    """Learns the same routes, but stores each resolved route as its concrete relation ids and replays them.
+    """Same routing front end as C, but it stores each resolved route as concrete relation ids and replays them.
 
-    This is what a route cache without versioned provenance does: it reads the graph live, but along pinned
-    relation ids, so it never notices that a fact was superseded.
+    This is a route cache without versioned provenance: it reads the graph live, but along pinned relation ids
+    (keyed by question shape + start entity), so it never notices that a fact was superseded.
     """
 
     def __init__(self, llm: LLM, desire: DesirePaths):
@@ -45,23 +45,21 @@ class StaleRouteAgent:
     async def answer(self, question: str, backend) -> dict:
         meter = Meter()
         qb = QB(backend)
-        out = parse_json(await self.llm.chat(
-            [{"role": "user", "content": ROUTER.format(routes=self.c.route_menu(), question=question)}],
-            meter, max_tokens=120, tag="C.router"))
-        rid = str(out.get("route", ""))
-        rt = self.c.lib.get(rid)
-        hits = await qb.search(str(out.get("entity", ""))[:200])
-        start = next((h for h in hits if rt and h["type"] == rt.start_type
-                      and _same_entity(h["name"], str(out.get("entity", "")), question)), None)
-        if rt is None or start is None:
-            return {"answer": [], "llm_calls": meter.calls, "note": "no route"}
-        key = (rid, start["id"])
-        if key not in self.pinned:
-            rows = await qb.run_route(rt.hops, start["id"])
-            self.pinned[key] = [sid for sid, _ in rows[0]["provenance"]]
-        last = await backend.sg.relations.versions(self.pinned[key][-1])  # replay the pinned relation id
-        ans = last[0].to_entity if last else ""  # newest version of the PINNED id (may be retired)
-        return {"answer": [backend.name(ans)], "llm_calls": meter.calls, "pinned": self.pinned[key]}
+        for h in await qb.search(question[:300]):
+            key = (mask(question, h["name"], h["type"]), h["id"])
+            if mentions(question, h["name"]) and key in self.pinned:
+                versions = await backend.sg.relations.versions(self.pinned[key][-1])  # replay the PINNED relation id
+                return {"answer": [backend.name(versions[0].to_entity)] if versions else [], "llm_calls": meter.calls,
+                        "via": "pinned relation ids"}
+        res = Result([], meter)
+        routed = await self.c.try_route(question, qb, meter, res)
+        if routed is None:
+            return {"answer": [], "llm_calls": meter.calls, "via": "no route"}
+        names, rt, how = routed
+        step = next(s for s in res.steps if "provenance" in s)
+        self.pinned[(mask(question, backend.name(step["start"]), rt.start_type), step["start"])] = \
+            [sid for sid, _ in step["provenance"]]
+        return {"answer": names, "llm_calls": meter.calls, "via": f"route {rt.id} ({how}), pinned"}
 
 
 async def main() -> None:
@@ -122,7 +120,8 @@ async def main() -> None:
         team, old_rel, person = choice
         p_old = g.out(team, "ON_CALL")[0]
         p_new = next(p for p in g.inn(team, "MEMBER_OF") if p != p_old)
-        qtext = QTEMPLATES["oncall_for_person_project"]["phrasings"][2].format(x=g.nodes[person].name)
+        # a phrasing seen in training, about a person never seen in training
+        qtext = QTEMPLATES["oncall_for_person_project"]["phrasings"][0].format(x=g.nodes[person].name)
         log("scenario", template=rt.id, version=rt.version, team=g.nodes[team].name, relation=old_rel,
             question=qtext, on_call_before=g.nodes[p_old].name, on_call_after=g.nodes[p_new].name,
             dependents=[t.id for t in lib.active() if old_rel in t.depends_on()])
@@ -132,8 +131,10 @@ async def main() -> None:
             s = await stale.answer(qtext, backend)
             log(f"ask:{phase}", gold=gold,
                 desire={"answer": r.answer, "correct": correct(r.answer, [gold]), "route": r.route,
+                        "via": next((x["via"] for x in r.steps if "via" in x), "walk"),
                         "fallback": r.fallback, "llm_calls": r.meter.calls, "graph_calls": r.graph_calls},
-                stale={"answer": s["answer"], "correct": correct(s["answer"], [gold]), "llm_calls": s["llm_calls"]})
+                stale={"answer": s["answer"], "correct": correct(s["answer"], [gold]), "llm_calls": s["llm_calls"],
+                       "via": s["via"]})
 
         # 3. before
         await ask("before_change", g.nodes[p_old].name)

@@ -167,9 +167,11 @@ async def mutate():
         new = members[len(STATE["events"]) % len(members)]
         retired_rel, new_rel = await b.supersede(team, "ON_CALL", new)
         retired = lib.on_relation_change(retired_rel, reason="ON_CALL superseded (dashboard)")
-        person = next((p for p in g.nodes if p.startswith("person:")
+        train_starts = {x.start for x in STATE["train"]}
+        person = next((p for p in g.nodes if p.startswith("person:") and p not in train_starts
                        and [x for x in g.out(p, "WORKS_ON") if team in g.out(x, "OWNED_BY")]), None)
-        q = QTEMPLATES["oncall_for_person_project"]["phrasings"][2].format(x=g.nodes[person].name) if person else None
+        # a phrasing seen in training, about a person never seen in training
+        q = QTEMPLATES["oncall_for_person_project"]["phrasings"][0].format(x=g.nodes[person].name) if person else None
         ev = {"fact": f"{b.name(team)} ON_CALL: {b.name(old)} -> {b.name(new)}", "retired_relation": retired_rel,
               "new_relation": new_rel, "retired_templates": [t.id for t in retired], "try_question": q,
               "expected_answer": b.name(new)}

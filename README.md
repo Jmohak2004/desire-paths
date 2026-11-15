@@ -33,23 +33,30 @@ vector store doesn't have:
 ## How it works
 
 ```
- question ──► router (1 LLM call) ──► active route? ──yes──► search start entity ──► ONE Cypher query ──► answer
-                                          │ no                                         (HydraDB, current facts)
-                                          ▼
+ question ─► keyword search (1 graph call) ─► masked shape known? ─yes─► its route ─► ONE Cypher query ─► answer
+                                                   │ no                  (0 LLM calls; any entity of that type)
+                                                   ▼
+                        router (1 LLM call) picks a route + names the start entity ─► entity check ─► ONE query
+                                                   │ no route / not resolved
+                                                   ▼
                      graph agent walks hop by hop (search / neighbors, 1 LLM call per step)
-                                          │ success signal
-                                          ▼
-   trace ──► candidate typed walks through the explored edges ──► verify each with one query (must return exactly the answer)
-                                          │
-                                          ▼
-   RouteLibrary: per question shape, a meta-path is attached only if it explains ≥80% of that shape's successful
-   traces (rejects coincidences: "the PR author happens to be the manager"); shortest such path wins; promote at
-   support ≥3. Each template stores provenance = (relation id, revision) of every supporting trace.
-                                          │
-   SelfGraph supersedes a fact ──► on_relation_change(rel_id) ──► dependent templates RETIRE
-                                          │
-                       revalidate(): re-bind each support trace on the current graph ──► template vN+1
+                                                   │ success signal
+                                                   ▼
+   trace ─► candidate typed walks through the explored edges ─► verify each with one query (must return exactly the answer)
+                                                   │
+                                                   ▼
+   RouteLibrary: per question shape (the question with its entity masked by type), a meta-path is attached only if it
+   explains ≥80% of that shape's successful traces (rejects coincidences: "the PR author happens to be the manager");
+   shortest such path wins; promote at support ≥3. Provenance = (relation id, revision) of every supporting trace.
+                                                   │
+   SelfGraph supersedes a fact ─► on_relation_change(rel_id) ─► dependent templates RETIRE
+                                                   │
+                       revalidate(): re-bind each support trace on the current graph ─► template vN+1
 ```
+
+A question shape seen in training maps straight to its route, even when the entity is new, so those questions cost
+zero LLM calls. A new phrasing goes through the router, one LLM call. A router mistake during training is logged
+as a misroute and does not demote the route. A wrong answer through the shape index does count against the route.
 
 | module | what it does |
 |---|---|
@@ -102,8 +109,8 @@ calls.
   train. Route learning only ever sees train questions; held-out scoring has learning frozen.
 - **Success signal.** In training, success comes from the gold answer. In production it would be user feedback or
   a verifier.
-- **Question shapes** are grouped by the masked question text. Clustering free-form paraphrases is future work.
-  The router (one LLM call) already generalises to an unseen phrasing.
+- **Question shapes** are the question text with the entity masked, matched exactly. Held-out questions include a
+  phrasing never seen in train; those go through the one-call router. Clustering paraphrases is future work.
 - **HydraDB** here is a single local v0.4.0 node built from source, not HydraDB Cloud. The same code points at any
   Bolt endpoint via `HYDRADB_URI`.
 
