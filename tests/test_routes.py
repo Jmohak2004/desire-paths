@@ -133,3 +133,15 @@ def test_fact_change_retires_and_rebuilds_template(world):
     assert old_rel not in rt.depends_on() and new_rel in rt.depends_on()
     rows = loop.run_until_complete(b.run_route(rt.hops, sup.start))
     assert [r["answer"] for r in rows] == [new_oncall]  # healed route reads the current fact
+
+
+def test_library_roundtrips_through_json(tmp_path):
+    lib = RouteLibrary(min_support=1)
+    hops = [("WORKS_ON", "out"), ("OWNED_BY", "out")]
+    lib.observe(Trace("q about P1", "person:1", "Person", "P1", ["x"], True, [Candidate(hops, [("r1", 1)])]))
+    lib.promote()
+    lib.save(str(tmp_path / "l.json"))
+    back = RouteLibrary.load(str(tmp_path / "l.json"))
+    rt = back.get("R1")
+    assert rt.status == "active" and rt.hops == hops and rt.depends_on() == {"r1"}
+    assert back.on_relation_change("r1") == [rt]

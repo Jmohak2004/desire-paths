@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desire Paths</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f7f7f5;--panel:#fff;--ink:#1b1d21;--muted:#6b7079;--line:#e3e3df;--a:#9aa0a6;--b:#5b7bd5;--c:#1f9d6b;--warn:#c2410c;--bad:#b91c1c;--chip:#eef1f6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121417;--panel:#1a1d21;--ink:#e8e9eb;--muted:#9aa0a6;--line:#2a2e34;--chip:#23272e}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif}
+header{padding:28px 20px 8px;max-width:1180px;margin:auto}h1{margin:0;font-size:28px;letter-spacing:-.02em}
+.pitch{color:var(--muted);margin:4px 0 0;font-size:16px}.meta{color:var(--muted);font-size:13px;margin-top:8px}
+main{max-width:1180px;margin:auto;padding:12px 20px 60px;display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;grid-column:span 12;min-width:0}
+.half{grid-column:span 6}@media(max-width:900px){.half{grid-column:span 12}}
+h2{font-size:15px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px}.kpi b{display:block;font-size:24px}.kpi span{color:var(--muted);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}th{color:var(--muted);font-weight:600}
+.tbl{overflow-x:auto}
+input,select,button{font:inherit}input[type=text],input[type=number]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+button{padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--chip);color:var(--ink);cursor:pointer}button.primary{background:var(--c);color:#fff;border-color:var(--c)}button:disabled{opacity:.5;cursor:wait}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.chip{font-size:12px;padding:5px 9px;border-radius:999px;background:var(--chip);border:1px solid var(--line);cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.out{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}.ans{font-size:20px;font-weight:600}
+.ok{color:var(--c)}.bad{color:var(--bad)}.muted{color:var(--muted)}.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:6px;background:var(--chip);margin-right:6px}
+.path{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0}.node{border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--bg)}.node small{display:block;color:var(--muted);font-size:11px}
+.edge{font-size:12px;color:var(--c);font-weight:600}.rt{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}.rt code{font-size:12px;word-break:break-all}
+.st-active{color:var(--c)}.st-retired{color:var(--warn)}.st-candidate{color:var(--muted)}pre{white-space:pre-wrap;font-size:12px;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--line);overflow-x:auto}
+.tl div{padding:6px 0;border-bottom:1px dashed var(--line);font-size:14px}.chartbox{position:relative;height:300px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Desire Paths</h1>
+  <p class="pitch">Agent cost per task falls as your graph is used. Learned route templates on SelfGraph, executed as one graph query.</p>
+  <div class="meta" id="meta">loading…</div>
+</header>
+<main>
+  <section class="card"><h2>Held-out results (measured)</h2><div class="kpis" id="kpis"></div><div class="tbl" style="margin-top:14px"><table id="tbl"></table></div><p class="muted" id="note"></p></section>
+
+  <section class="card half"><h2>Learning curve: LLM calls per question</h2><div class="chartbox"><canvas id="c1"></canvas></div></section>
+  <section class="card half"><h2>Learning curve: input tokens per question</h2><div class="chartbox"><canvas id="c2"></canvas></div></section>
+
+  <section class="card"><h2>Ask the graph (live)</h2>
+    <input type="text" id="q" placeholder="Ask a multi-hop question, or pick an example">
+    <div class="chips" id="ex"></div>
+    <div class="row"><button class="primary" id="askC">Ask Desire Paths (C)</button><button id="askB">Ask graph agent without routes (B)</button></div>
+    <div class="out" id="out" hidden></div>
+  </section>
+
+  <section class="card half"><h2>Heal: change one fact (live)</h2>
+    <p class="muted">Supersedes one on-call fact through SelfGraph's versioned API. Templates whose provenance holds the old relation retire; rebuild re-binds them to current facts.</p>
+    <div class="row"><button id="mut">Change one fact</button><button id="reval">Rebuild retired routes</button></div>
+    <div class="out tl" id="heal"></div>
+    <h2 style="margin-top:18px">Recorded heal test (make eval)</h2><div class="tl" id="healrec"></div>
+  </section>
+
+  <section class="card half"><h2>Route library</h2><div id="routes"></div></section>
+
+  <section class="card"><h2>Savings calculator</h2>
+    <div class="row" style="gap:16px">
+      <label>Tasks / month <input type="number" id="vol" value="100000" min="0" step="1000"></label>
+      <label>$ / 1M input tokens <input type="number" id="pin" value="2.00" step="0.05"></label>
+      <label>$ / 1M output tokens <input type="number" id="pout" value="10.00" step="0.5"></label>
+    </div>
+    <div class="tbl" style="margin-top:12px"><table id="calc"></table></div>
+    <p class="muted">Per-task tokens are measured (held-out, final round, mean over seeds). Prices are your inputs; C's one-time learning cost is amortised over the first month.</p>
+  </section>
+</main>
+<script>
+const $=s=>document.querySelector(s);const fmt=(x,d=2)=>x==null?'–':(+x).toFixed(d);
+const NAMES={A_vector:'A · Vector RAG',B_graph:'B · Graph agent',C_desire:'C · Desire Paths'};
+const COL={A_vector:getComputedStyle(document.documentElement).getPropertyValue('--a'),B_graph:'#5b7bd5',C_desire:'#1f9d6b'};
+let RES=null,PT={},LEARN=null;
+async function j(u,o){const r=await fetch(u,o);if(!r.ok)throw new Error(await r.text());return r.json()}
+async function load(){
+  const st=await j('/api/status');
+  $('#meta').textContent=`model ${st.model} · backend ${st.backend}${st.hydradb_configured?'':' (HydraDB not configured)'} · ${st.nodes.toLocaleString()} nodes / ${st.edges.toLocaleString()} edges · ${st.active_routes} active routes`;
+  RES=await j('/api/results');const S=RES.summary;
+  if(!S){$('#note').textContent='No results yet: run make eval.';}else{renderResults(S)}
+  renderHealRec(RES.heal);LEARN=RES.savings&&RES.savings.learning_one_time;calc();
+  const ex=await j('/api/examples');$('#ex').innerHTML='';ex.forEach(e=>{const c=document.createElement('span');c.className='chip';c.textContent=e.question;c.title=e.question;c.onclick=()=>{$('#q').value=e.question};$('#ex').appendChild(c)});
+  routes();
+}
+function renderResults(S){
+  const R=S.meta.rounds,sm=S.summary;const fin=a=>sm[a]&&sm[a][R];
+  ['A_vector','B_graph','C_desire'].forEach(a=>{const c=fin(a);if(c)PT[a]={in:c.input_tokens.mean,out:c.output_tokens.mean,calls:c.llm_calls.mean,acc:c.accuracy.mean}});
+  const b=fin('B_graph'),c=fin('C_desire'),a=fin('A_vector');
+  $('#kpis').innerHTML=[
+    ['C accuracy (held-out)',fmt(c.accuracy.mean)+' ± '+fmt(c.accuracy.std)],
+    ['LLM calls / task, B → C',fmt(b.llm_calls.mean,1)+' → '+fmt(c.llm_calls.mean,1)],
+    ['Input tokens / task, B → C',Math.round(b.input_tokens.mean)+' → '+Math.round(c.input_tokens.mean)],
+    ['Token cut vs B',Math.round(100*(1-(c.input_tokens.mean+c.output_tokens.mean)/(b.input_tokens.mean+b.output_tokens.mean)))+'%']
+  ].map(([k,v])=>`<div class="kpi"><b>${v}</b><span>${k}</span></div>`).join('');
+  const rows=['A_vector','B_graph','C_desire'].filter(fin).map(x=>{const q=fin(x);return `<tr><td>${NAMES[x]}</td><td>${fmt(q.accuracy.mean)} ± ${fmt(q.accuracy.std)}</td><td>${fmt(q.llm_calls.mean)} ± ${fmt(q.llm_calls.std)}</td><td>${Math.round(q.input_tokens.mean)} ± ${Math.round(q.input_tokens.std)}</td><td>${Math.round(q.output_tokens.mean)}</td><td>${fmt(q.latency_s.mean)}</td><td>${fmt(q.graph_calls.mean,1)}</td></tr>`}).join('');
+  $('#tbl').innerHTML=`<tr><th>agent (after ${R} rounds)</th><th>accuracy</th><th>LLM calls / q</th><th>input tok / q</th><th>output tok / q</th><th>latency s / q</th><th>graph calls / q</th></tr>`+rows;
+  $('#note').textContent=`${S.meta.model} at temperature ${S.meta.temperature}; seeds ${S.meta.seeds.join(', ')}; backend: ${S.meta.backend}. ${S.meta.note}`;
+  const rounds=[...Array(R+1).keys()];
+  const ds=(k)=>['A_vector','B_graph','C_desire'].filter(x=>sm[x]).map(x=>({label:NAMES[x]+(x==='C_desire'?'':' (no learning state)'),data:rounds.map(r=>sm[x][r][k].mean),borderColor:COL[x]||'#999',backgroundColor:COL[x]||'#999',borderDash:x==='C_desire'?[]:[6,4],tension:.2,pointRadius:x==='C_desire'?4:0,borderWidth:x==='C_desire'?3:2}));
+  const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{title:{display:true,text:'learning round (train questions seen)'}},y:{beginAtZero:true}}};
+  new Chart($('#c1'),{type:'line',data:{labels:rounds,datasets:ds('llm_calls')},options:opts});
+  new Chart($('#c2'),{type:'line',data:{labels:rounds,datasets:ds('input_tokens')},options:opts});
+}
+function calc(){
+  const v=+$('#vol').value,pi=+$('#pin').value,po=+$('#pout').value;const per=a=>(PT[a].in*pi+PT[a].out*po)/1e6;
+  if(!PT.B_graph){$('#calc').innerHTML='<tr><td class="muted">Run make eval to fill the calculator.</td></tr>';return}
+  const learn=LEARN?(LEARN.input_tokens*pi+LEARN.output_tokens*po)/1e6:0;
+  const rows=Object.keys(PT).map(a=>{const m=per(a)*v+(a==='C_desire'?learn:0);return `<tr><td>${NAMES[a]}</td><td>${fmt(PT[a].acc)}</td><td>$${fmt(per(a)*1000,3)}</td><td>$${Math.round(m).toLocaleString()}</td><td>${a==='C_desire'&&PT.B_graph?Math.round(100*(1-m/(per('B_graph')*v)))+'% vs B':''}</td></tr>`}).join('');
+  $('#calc').innerHTML='<tr><th>agent</th><th>accuracy</th><th>cost / 1,000 tasks</th><th>cost / month</th><th>saving</th></tr>'+rows+(LEARN?`<tr><td colspan="5" class="muted">C one-time learning: ${Math.round(LEARN.tasks)} train tasks, $${fmt(learn,3)} at these prices.</td></tr>`:'');
+}
+['#vol','#pin','#pout'].forEach(s=>$(s).addEventListener('input',calc));
+async function ask(agent){
+  const q=$('#q').value.trim();if(!q)return;const bs=[$('#askC'),$('#askB')];bs.forEach(b=>b.disabled=true);$('#out').hidden=false;$('#out').innerHTML='<span class="muted">running…</span>';
+  try{const r=await j('/api/ask',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,agent})});
+    const m=r.metrics;const verdict=r.correct==null?'':(r.correct?'<span class="ok">✓ matches gold</span>':`<span class="bad">✗ gold: ${r.gold.join(', ')}</span>`);
+    const how=r.route?`<span class="tag">route ${r.route}</span> one graph query`:(agent==='C'?'<span class="tag">fallback</span> walked the graph':'<span class="tag">walked the graph</span>');
+    const path=r.path.length?'<div class="path">'+r.path.map((p,i)=>(i===0?`<span class="node">${p.from}<small>${p.from_type}</small></span>`:'')+`<span class="edge">${p.dir==='out'?'—'+p.rel+'→':'←'+p.rel+'—'}</span><span class="node">${p.to}<small>${p.to_type} · rev ${p.revision}</small></span>`).join('')+'</div>':'';
+    $('#out').innerHTML=`<div class="ans">${(r.answer||[]).join(', ')||'(no answer)'} ${verdict}</div><div style="margin:6px 0">${how}</div>${path}
+      <div class="row muted"><span>LLM calls <b>${m.llm_calls}</b></span><span>input tokens <b>${m.input_tokens}</b></span><span>output tokens <b>${m.output_tokens}</b></span><span>graph calls <b>${m.graph_calls}</b></span><span>latency <b>${fmt(m.latency_s)}s</b></span></div>`;
+  }catch(e){$('#out').innerHTML=`<span class="bad">${e.message}</span>`}finally{bs.forEach(b=>b.disabled=false);routes()}
+}
+$('#askC').onclick=()=>ask('C');$('#askB').onclick=()=>ask('B');
+$('#mut').onclick=async()=>{const r=await j('/api/mutate',{method:'POST'});$('#heal').insertAdjacentHTML('beforeend',`<div><b>Fact changed:</b> ${r.fact}<br><span class="muted">retired relation ${r.retired_relation} → templates retired: ${r.retired_templates.join(', ')||'none'}</span>${r.try_question?`<br>Try: <a href="#" class="tryq">${r.try_question}</a> (expect <b>${r.expected_answer}</b>)`:''}</div>`);document.querySelectorAll('.tryq').forEach(a=>a.onclick=e=>{e.preventDefault();$('#q').value=a.textContent;window.scrollTo({top:$('#q').offsetTop-80,behavior:'smooth'})});routes()};
+$('#reval').onclick=async()=>{const r=await j('/api/revalidate',{method:'POST'});$('#heal').insertAdjacentHTML('beforeend',`<div><b>Rebuilt:</b> ${r.rebuilt.map(t=>t.id+' v'+t.version+' ('+t.support+' supporting traces)').join(', ')||'nothing to rebuild'}</div>`);routes()};
+async function routes(){const r=await j('/api/routes');$('#routes').innerHTML=r.routes.map(t=>`<div class="rt"><b>${t.id}</b> <span class="st-${t.status}">${t.status}</span> v${t.version} · support ${t.support} · uses ${t.uses}<br><code>${t.signature}</code><div class="muted" style="font-size:13px">${t.exemplars.slice(0,2).map(e=>'“'+e+'”').join('<br>')}</div></div>`).join('')+`<p class="muted">${r.unpromoted_hypotheses} unpromoted meta-path hypotheses (coincidental or redundant paths) kept as evidence.</p>`}
+function renderHealRec(h){if(!h){$('#healrec').innerHTML='<span class="muted">Run make heal.</span>';return}
+  const L=h.timeline.filter(e=>e.event!=='learned').map(e=>{if(e.event==='scenario')return `<div><b>Scenario:</b> “${e.question}” — on-call for ${e.team}: ${e.on_call_before} → ${e.on_call_after}</div>`;
+  if(e.event.startsWith('ask:'))return `<div><b>${e.event.slice(4).replaceAll('_',' ')}</b> (gold ${e.gold}): C → ${e.desire.answer.join(', ')} ${e.desire.correct?'<span class="ok">✓</span>':'<span class="bad">✗</span>'} ${e.desire.route?'via '+e.desire.route:'(fallback walk)'}, ${e.desire.llm_calls} LLM calls · stale-route agent → ${e.stale.answer.join(', ')} ${e.stale.correct?'<span class="ok">✓</span>':'<span class="bad">✗</span>'}</div>`;
+  if(e.event==='fact_changed')return `<div><b>Fact changed:</b> ${e.fact}</div>`;
+  if(e.event==='templates_retired')return `<div><b>Retired:</b> ${e.ids.map(x=>x[0]+' v'+x[2]).join(', ')}</div>`;
+  if(e.event==='templates_rebuilt')return `<div><b>Rebuilt:</b> ${e.ids.map(x=>x[0]+' v'+x[1]).join(', ')}</div>`;return ''}).join('');$('#healrec').innerHTML=L}
+load().catch(e=>{$('#meta').textContent='error: '+e.message});
+</script>
+</body>
+</html>

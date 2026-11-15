@@ -13,7 +13,7 @@ gate:            ## prove custom writes + Cypher on HydraDB (needs HYDRADB_URI /
 	$(PY) scripts/gate_hydradb.py
 
 eval:            ## full eval: 3 seeds, A vs B vs C, learning curve -> results/
-	$(PY) -m eval.run --seeds 0,1,2
+	$(PY) -m eval.run --seeds 0,1,2 --rounds 4 --train-per-template 8 --test-per-template 6
 	$(PY) -m eval.heal --seed 0
 	$(PY) -m eval.calculator
 

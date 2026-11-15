@@ -19,9 +19,10 @@ from pathlib import Path
 import numpy as np
 
 BASE_URL = os.environ.get("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
-MODEL = os.environ.get("DP_MODEL", "google/gemma-4-31b-it")
-EMBED_MODEL = os.environ.get("DP_EMBED_MODEL", "nvidia/llama-3.2-nv-embedqa-1b-v1")
-EMBED_DIM = 384
+# Requested model was google/gemma-4-31b-it; on 2026-11-16 it timed out (>45-200 s per call) on NVIDIA's API, so the
+# measured runs pin the fastest model that solved the graph-agent probe (see results/model_probe.md).
+MODEL = os.environ.get("DP_MODEL", "poolside/laguna-xs-2.1")
+EMBED_MODEL = os.environ.get("DP_EMBED_MODEL", "nvidia/nemotron-3-embed-1b")  # the only NVIDIA embedder serving this key
 TEMPERATURE = 0.0
 MAX_TOKENS = 400
 ROOT = Path(__file__).resolve().parent.parent
@@ -138,7 +139,7 @@ class Embedder:
         for attempt in range(8):
             try:
                 r = await self.client.embeddings.create(
-                    model=EMBED_MODEL, input=texts, encoding_format="float", dimensions=EMBED_DIM,
+                    model=EMBED_MODEL, input=texts, encoding_format="float",
                     extra_body={"input_type": input_type, "truncate": "END"})
                 v = np.array([d.embedding for d in r.data], dtype=np.float32)
                 return v / np.linalg.norm(v, axis=1, keepdims=True)

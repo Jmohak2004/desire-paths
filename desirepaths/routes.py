@@ -337,3 +337,23 @@ class RouteLibrary:
     def save(self, path: str) -> None:
         with open(path, "w") as f:
             json.dump(self.to_json(), f, indent=1)
+
+    @classmethod
+    def from_json(cls, d: dict) -> "RouteLibrary":
+        lib = cls(min_support=d.get("min_support", 3), min_success=d.get("min_success", 0.8))
+        lib.shapes = d.get("shapes", {})
+        for t in d.get("templates", []):
+            rt = RouteTemplate(
+                id=t["id"], start_type=t["start_type"], hops=[tuple(h) for h in t["hops"]],
+                answer_type=t.get("answer_type", ""), status=t["status"], version=t["version"],
+                successes=t.get("successes", 0), failures=t.get("failures", 0),
+                support=[Support(s["start"], [tuple(p) for p in s["provenance"]]) for s in t.get("support", [])],
+                exemplars=t.get("exemplars", []), uses=t.get("uses", 0), events=t.get("events", []))
+            lib.templates[route_key(rt.start_type, rt.hops)] = rt
+            lib._n = max(lib._n, int(rt.id[1:]) if rt.id[1:].isdigit() else 0)
+        return lib
+
+    @classmethod
+    def load(cls, path: str) -> "RouteLibrary":
+        with open(path) as f:
+            return cls.from_json(json.load(f))
