@@ -1,0 +1,6 @@
+{
+ "ts": "2026-11-16 01:53:27",
+ "uri_set": false,
+ "checks": {},
+ "error": "HYDRADB_URI not set; nothing to test"
+}
