@@ -4,3 +4,7 @@ __pycache__/
 .env
 results/cache/
 .pytest_cache/
+scratch/
+*.kuzu
+*.kuzu.wal
+.brew.log
