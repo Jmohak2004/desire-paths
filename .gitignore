@@ -10,3 +10,4 @@ scratch/
 *.kuzu.wal
 .brew.log
 .hydradb/
+*.egg-info/

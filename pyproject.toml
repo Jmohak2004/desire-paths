@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "desirepaths"
+version = "0.1.0"
+description = "Learned route templates on SelfGraph/HydraDB: agent cost per task falls as your graph is used."
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+dependencies = ["selfgraph==0.2.1", "numpy"]
+
+[project.optional-dependencies]
+agents = ["openai"]
+kuzu = ["kuzu==0.11.3"]
+dashboard = ["fastapi", "uvicorn"]
+dev = ["pytest", "kuzu==0.11.3", "openai", "fastapi", "uvicorn"]
+
+[project.urls]
+Homepage = "https://github.com/Jmohak2004/desire-paths"
+
+[tool.setuptools]
+packages = ["desirepaths", "bench"]

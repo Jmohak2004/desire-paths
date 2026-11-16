@@ -135,7 +135,9 @@ class VectorRAG:
 
 # --------------------------------------------------------------------------- B: graph agent
 def schema_text() -> str:
-    from bench.gen import RELATIONS
+    from .schema import get_relations
+
+    RELATIONS = get_relations()
 
     return "\n".join(f"  ({a})-[{t}]->({b})" for t, a, b, _ in RELATIONS)
 
@@ -228,7 +230,9 @@ If none fits exactly, reply {{"route": "none"}}. Reply with exactly one JSON obj
 
 def path_types(start_type: str, hops) -> list[str]:
     """Entity types along a meta-path, from the schema (for a readable, unambiguous route menu)."""
-    from bench.gen import RELATIONS
+    from .schema import get_relations
+
+    RELATIONS = get_relations()
 
     ends = {t: (a, b) for t, a, b, _ in RELATIONS}
     out = []

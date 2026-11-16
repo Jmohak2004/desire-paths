@@ -214,7 +214,9 @@ class GraphBackend:
 
 
 def selfgraph_schema() -> dict:
-    from bench.gen import RELATIONS
+    from .schema import get_relations
+
+    RELATIONS = get_relations()
 
     types = sorted({t for _, a, b, _ in RELATIONS for t in (a, b)})
     rels = []
