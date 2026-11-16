@@ -13,8 +13,11 @@ _Updated: 2026-11-16 ~12:00 IST_
 - [ ] Posts tagging HydraDB on X and LinkedIn: drafts in `docs/social_posts.md`
 - [ ] Submit live link + repo + Loom: https://forms.gle/9brHhy7BC229tw868
 - [ ] Bounty #2 (article on X + tweet): draft in `docs/blog.md`; submit https://forms.gle/i8ybFDVciMThjhGbA
-- Bounty #1 (SelfGraph PR): investigated, nothing filed. The one candidate fix removed HydraDB full-scan warnings but
-  made inserts about 9× slower on a large store (measured A/B), so it would have been a regression.
+- Bounty #1 (SelfGraph issue + PR): issue https://github.com/hydra-db/selfgraph/issues/165 opened. Connection errnos
+  were matched by name, so Windows never got the plain reason and the unit test failed on macOS and Windows.
+  Verified on all three OSes in CI: https://github.com/Jmohak2004/desire-paths/actions/runs/43820797745. The fix is on
+  `Jmohak2004/selfgraph` branch `fix/connect-errno-by-code`. The PR opens once a maintainer comments `/approved`
+  (their issue-first rule). An earlier candidate (labelled id lookups) was dropped: measured 9× slower inserts.
 
 ## Works (verified)
 - **HydraDB v0.4.0**, built from source and running locally (`make hydradb`; Bolt 7687; telemetry off).
