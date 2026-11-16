@@ -17,7 +17,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
-from bench.gen import QTEMPLATES, generate, make_questions
+from bench.gen import QTEMPLATES, generate, make_questions, walk
 from desirepaths.agents import DesirePaths, GraphAgent, correct
 from desirepaths.backend import GraphBackend, hydradb_settings, make_selfgraph, selfgraph_schema
 from desirepaths.llm import LLM, MODEL
@@ -158,6 +158,9 @@ async def ask(req: Ask, request: Request):
             cur = s["start"]
             for (rid, rev), (rel, d) in zip(s["provenance"], rt.hops):
                 r = await b.sg.relations.get(rid)
+                if r is None:  # cannot draw this hop; the answer itself is unaffected
+                    path = []
+                    break
                 nxt = r.to_entity if d == "out" else r.from_entity
                 path.append({"from": b.name(cur), "from_type": b.etype(cur), "rel": rel, "dir": d, "rel_id": rid,
                              "revision": rev, "to": b.name(nxt), "to_type": b.etype(nxt)})
@@ -178,13 +181,10 @@ async def mutate(request: Request):
         rt = next((t for t in lib.templates.values() if t.hops == hops and t.support), None)
         if rt is None:
             raise HTTPException(409, "no on-call route learned yet")
-        rel_id = rt.support[0].provenance[-1][0]
-        r = await b.sg.relations.get(rel_id)
-        if r is None or not r.is_current:
-            # already changed once: use the current on-call relation of the same team
-            cur = await b.sg.relations.list(from_entity=r.from_entity if r else "", type="ON_CALL")
-            r = cur.items[0]
-        team, old = r.from_entity, r.to_entity
+        # The team on the route's first supporting walk; its current on-call comes from the in-memory graph,
+        # which is kept in sync with every change below (the relation in provenance may already be retired).
+        team = walk(g, rt.support[0].start, hops[:2])[0][0]
+        old = g.out(team, "ON_CALL")[0]
         members = [p for p in g.inn(team, "MEMBER_OF") if p != old]
         new = members[len(STATE["events"]) % len(members)]
         retired_rel, new_rel = await b.supersede(team, "ON_CALL", new)
