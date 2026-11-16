@@ -1,5 +1,7 @@
 # Desire Paths
 
+[![tests](https://github.com/Jmohak2004/desire-paths/actions/workflows/test.yml/badge.svg)](https://github.com/Jmohak2004/desire-paths/actions/workflows/test.yml)
+
 **Agent cost per task falls as your graph is used.**
 
 Desire Paths is a context layer on [HydraDB](https://github.com/hydra-db/hydradb) and
@@ -99,6 +101,11 @@ in it was computed live against HydraDB. The 60-second script is in [`docs/demo_
 |---|---|
 | ![after change](docs/img/after_change.png) | ![after rebuild](docs/img/after_rebuild.png) |
 
+Every learned route compiles to a single HydraDB query. The dashboard's route library shows each route's support,
+the relation versions it depends on, its Cypher, and a live run:
+
+![route view](docs/img/route_view.png)
+
 ## Why this earns its place over a vector store
 
 A vector store retrieves passages that *look like* the question. A multi-hop question ("who is on call for the team
@@ -155,7 +162,7 @@ as a misroute and does not demote the route. A wrong answer through the shape in
 ## Run it
 
 ```bash
-make setup                                  # venv + deps (Python 3.10+)
+make setup                                  # venv + deps (Python 3.10+; CI runs 3.11, dev box ran 3.13)
 cp .env.example .env                        # add NVIDIA_API_KEY; HYDRADB_URI / HYDRADB_TOKEN
 
 # HydraDB v0.4.0 local node (no Docker needed; ~6 min build on Apple silicon)
@@ -210,6 +217,32 @@ calls.
   On a fresh store it passes in 22 s. `make demo` starts from a fresh store, and `make hydradb-reset` wipes it.
 - **HydraDB** here is a single local v0.4.0 node built from source, not HydraDB Cloud. The same code points at any
   Bolt endpoint via `HYDRADB_URI`.
+
+## Use it as a library (SelfGraph add-on)
+
+```bash
+pip install -e ".[agents,kuzu]"     # or just the core: pip install -e .
+```
+
+```python
+from desirepaths import GraphBackend, RouteLibrary, Trace, make_selfgraph, set_relations, verified_paths
+
+set_relations([("WORKS_ON", "Person", "Project", 1), ("OWNED_BY", "Project", "Team", 1), ...])  # your schema
+sg, dialect, ns = make_selfgraph("graph.kuzu", schema, fresh=False)   # HydraDB when HYDRADB_URI is set
+graph = GraphBackend(sg, dialect, namespace=ns)
+lib = RouteLibrary(min_support=3)
+
+# after your agent answers: edges it looked at, entities it searched, answer ids, whether it was right
+start, candidates = await verified_paths(graph, explored_edges, searched_ids, answer_ids)
+lib.observe(Trace(question, start, start_type, start_name, answer_ids, success, candidates))
+lib.promote()
+
+rows = await graph.run_route(lib.active()[0].hops, new_entity_id)   # ONE query, answers + provenance
+lib.on_relation_change(retired_relation_id); await lib.revalidate(graph)
+```
+
+`desirepaths.agents.DesirePaths` wires all of this into an agent: shape index, then router, then graph-walk
+fallback, with online learning.
 
 ## Open source
 
