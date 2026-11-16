@@ -4,7 +4,8 @@
 
 **Agent cost per task falls as your graph is used.**
 
-**Live demo:** https://denver-spokesman-music-wall.trycloudflare.com (served from a self-hosted HydraDB node) ·
+**Live demo:** https://denver-spokesman-music-wall.trycloudflare.com (interactive, served from a self-hosted HydraDB
+node) · **Always-up snapshot:** https://jmohak2004.github.io/desire-paths/ (measured results; read-only) ·
 HydraDB hackathon, **Track 1: the self-improving graph**. Learned path compression: the graph learns, from its own
 correct answers, which typed paths to compile into single queries.
 
@@ -129,6 +130,37 @@ Every learned route compiles to a single HydraDB query. The dashboard's route li
 the relation versions it depends on, its Cypher, and a live run:
 
 ![route view](docs/img/route_view.png)
+
+## Go-to-market
+
+**Who pays.** Teams running LLM agents over company knowledge, where the same *kinds* of questions repeat thousands
+of times a day about different entities: on-call and incident routing ("who do I page for X?"), ownership and
+org lookups, IT and HR helpdesks, support agents over a product catalogue. Their bill grows with every hop the agent
+walks, and today they either pay it or hand-write query templates that go stale when the org changes.
+
+**What they get.** Their agent gets cheaper and faster the more it is used, at the same accuracy. Routes are learned,
+not hand-written. They generalise to new entities, so this is not an answer cache, and they retire themselves when
+the facts they were learned from change.
+
+<!-- GTM:START -->
+**Measured economics** (held-out, from `results/savings.json`; prices are list-price inputs). At claude-sonnet-5-5 list (2.00 / 10.00) prices, the same agent costs **$6.92 per 1,000 tasks without routes and $0.72 with Desire Paths**, a saving of $6.20 per 1,000 tasks ($620/month at 100,000 tasks/month), at the same accuracy. One-time learning cost: $0.19. Priced at 20% of the saving, the fee would be $1.24 per 1,000 tasks and the customer keeps $4.96. The dashboard's calculator redoes this at your own volume and prices.
+<!-- GTM:END -->
+
+**Business model (hypothesis).**
+- **Open source** (this repo, Apache-2.0): the `desirepaths` add-on for SelfGraph and HydraDB, self-hosted. It is the
+  wedge: it drops into an existing agent and shows its savings on the team's own traffic.
+- **Hosted / managed (paid):** route learning as a service next to HydraDB Cloud, with route-library management, drift
+  alerts (routes retired and rebuilt as facts change), a savings dashboard on real traffic, and an SLA.
+- **Pricing:** usage-based, priced as a share of the *measured* saving, so the customer always keeps most of it (see
+  the line above). Easy to justify, and it grows as the graph is used.
+
+**Why us / defensibility.** The value compounds inside each customer's graph: more traffic means more routes, which
+means cheaper traffic. Versioned provenance makes the routes safe on changing facts, which semantic caches and
+hand-written templates can't offer. It is built on HydraDB's open-source engine, so it rides the same adoption.
+
+**Validation so far (honest).** No customers or design partners yet; this was built in one night. Next steps: publish
+the build (X, LinkedIn, tagging HydraDB), offer free self-hosted pilots to teams running on-call or helpdesk agents,
+and measure their savings on real traffic with `make eval`-style held-out tests.
 
 ## Why this earns its place over a vector store
 

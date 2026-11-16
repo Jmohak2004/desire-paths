@@ -37,6 +37,9 @@ button{padding:9px 14px;border-radius:8px;border:1px solid var(--line);backgroun
   <h1>Desire Paths</h1>
   <p class="pitch">Agent cost per task falls as your graph is used. Learned route templates on SelfGraph, executed as one graph query.</p>
   <div class="meta" id="meta">loading…</div>
+  <div id="staticnote" hidden style="margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:14px">
+    Static snapshot of the measured results (always up). The live demo, where you can ask questions and change facts on the self-hosted HydraDB, is at <a id="livelink" href="#">the live link</a>. Code: <a href="https://github.com/Jmohak2004/desire-paths">github.com/Jmohak2004/desire-paths</a>.
+  </div>
 </header>
 <main>
   <section class="card"><h2>Held-out results (measured)</h2><div class="kpis" id="kpis"></div><div class="tbl" style="margin-top:14px"><table id="tbl"></table></div><p class="muted" id="note"></p></section>
@@ -62,6 +65,15 @@ button{padding:9px 14px;border-radius:8px;border:1px solid var(--line);backgroun
 
   <section class="card half"><h2>Route library</h2><div id="routes"></div></section>
 
+  <section class="card"><h2>Who pays, and why</h2>
+    <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kpi"><b>Who</b><span>Teams running LLM agents over company knowledge where question shapes repeat: on-call and incident routing, ownership lookups, IT/HR helpdesks, support.</span></div>
+      <div class="kpi"><b>What they get</b><span>The same accuracy at a fraction of the LLM calls, and it gets cheaper with use. Routes generalise to new entities and retire themselves when facts change.</span></div>
+      <div class="kpi"><b>How we charge</b><span>Open source to self-host; paid managed route learning with drift alerts and a savings dashboard, priced as a share (20%) of the measured saving.</span></div>
+    </div>
+    <p class="muted" style="font-size:13px">Honest status: no customers yet (built in one night). Next: free self-hosted pilots with on-call and helpdesk teams, measured on their own traffic.</p>
+  </section>
+
   <section class="card"><h2>Savings calculator</h2>
     <div class="row" style="gap:16px">
       <label>Tasks / month <input type="number" id="vol" value="100000" min="0" step="1000"></label>
@@ -73,18 +85,20 @@ button{padding:9px 14px;border-radius:8px;border:1px solid var(--line);backgroun
   </section>
 </main>
 <script>
+const STATIC=location.hostname.endsWith('github.io');
+const LIVE='https://denver-spokesman-music-wall.trycloudflare.com';
 const $=s=>document.querySelector(s);const fmt=(x,d=2)=>x==null?'–':(+x).toFixed(d);
 const NAMES={A_vector:'A · Vector RAG',B_graph:'B · Graph agent',C_desire:'C · Desire Paths'};
 const COL={A_vector:getComputedStyle(document.documentElement).getPropertyValue('--a'),B_graph:'#5b7bd5',C_desire:'#1f9d6b'};
 let RES=null,PT={},LEARN=null;
 async function j(u,o){const r=await fetch(u,o);if(!r.ok)throw new Error(await r.text());return r.json()}
 async function load(){
-  const st=await j('/api/status');
+  const st=await j('api/status');
   $('#meta').textContent=`model ${st.model} · backend ${st.backend}${st.hydradb_configured?'':' (HydraDB not configured)'} · ${st.nodes.toLocaleString()} nodes / ${st.edges.toLocaleString()} edges · ${st.active_routes} active routes`;
-  RES=await j('/api/results');const S=RES.summary;
+  RES=await j('api/results');const S=RES.summary;
   if(!S){$('#note').textContent='No results yet: run make eval.';}else{renderResults(S)}
   renderHealRec(RES.heal);LEARN=RES.savings&&RES.savings.learning_one_time;calc();
-  const ex=await j('/api/examples');$('#ex').innerHTML='';ex.forEach(e=>{const c=document.createElement('span');c.className='chip';c.dataset.kind=e.kind;c.textContent=(e.kind==='new phrasing'?'✦ ':'')+e.question;c.title=e.kind+', entity never seen in training';c.onclick=()=>{$('#q').value=e.question};$('#ex').appendChild(c)});
+  const ex=await j('api/examples');$('#ex').innerHTML='';ex.forEach(e=>{const c=document.createElement('span');c.className='chip';c.dataset.kind=e.kind;c.textContent=(e.kind==='new phrasing'?'✦ ':'')+e.question;c.title=e.kind+', entity never seen in training';c.onclick=()=>{$('#q').value=e.question};$('#ex').appendChild(c)});
   routes();
 }
 function renderResults(S){
@@ -113,12 +127,14 @@ function calc(){
   if(!PT.B_graph){$('#calc').innerHTML='<tr><td class="muted">Run make eval to fill the calculator.</td></tr>';return}
   const learn=LEARN?(LEARN.input_tokens*pi+LEARN.output_tokens*po)/1e6:0;
   const rows=Object.keys(PT).map(a=>{const m=per(a)*v+(a==='C_desire'?learn:0);return `<tr><td>${NAMES[a]}</td><td>${fmt(PT[a].acc)}</td><td>$${fmt(per(a)*1000,3)}</td><td>$${Math.round(m).toLocaleString()}</td><td>${a==='C_desire'&&PT.B_graph?Math.round(100*(1-m/(per('B_graph')*v)))+'% vs B':''}</td></tr>`}).join('');
-  $('#calc').innerHTML='<tr><th>agent</th><th>accuracy</th><th>cost / 1,000 tasks</th><th>cost / month</th><th>saving</th></tr>'+rows+(LEARN?`<tr><td colspan="5" class="muted">C one-time learning: ${Math.round(LEARN.tasks)} train tasks, $${fmt(learn,3)} at these prices.</td></tr>`:'');
+  const save=(per('B_graph')-per('C_desire'))*v, fee=0.2*save;
+  const feeRow='<tr><td colspan="5" class="muted">Monthly saving vs B: <b>$'+Math.round(save).toLocaleString()+'</b> · Desire Paths fee at 20% of the saving: <b>$'+Math.round(fee).toLocaleString()+'</b> · you keep <b>$'+Math.round(save-fee).toLocaleString()+'</b></td></tr>';
+  $('#calc').innerHTML='<tr><th>agent</th><th>accuracy</th><th>cost / 1,000 tasks</th><th>cost / month</th><th>saving</th></tr>'+rows+feeRow+(LEARN?`<tr><td colspan="5" class="muted">C one-time learning: ${Math.round(LEARN.tasks)} train tasks, $${fmt(learn,3)} at these prices.</td></tr>`:'');
 }
 ['#vol','#pin','#pout'].forEach(s=>$(s).addEventListener('input',calc));
 async function ask(agent){
   const q=$('#q').value.trim();if(!q)return;const bs=[$('#askC'),$('#askB')];bs.forEach(b=>b.disabled=true);$('#out').hidden=false;$('#out').innerHTML='<span class="muted">running…</span>';
-  try{const r=await j('/api/ask',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,agent})});
+  try{const r=await j('api/ask',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,agent})});
     const m=r.metrics;const verdict=r.correct==null?'':(r.correct?'<span class="ok">✓ matches gold</span>':`<span class="bad">✗ gold: ${r.gold.join(', ')}</span>`);
     const via=(r.steps.find(s=>s.via)||{}).via;const how=r.route?`<span class="tag">route ${r.route}</span> ${via==='shape'?'known question shape → no LLM call needed':'router picked the route (1 LLM call)'}, then one graph query`:(agent==='C'?'<span class="tag">fallback</span> walked the graph':'<span class="tag">walked the graph</span>');
     const path=r.path.length?'<div class="path">'+r.path.map((p,i)=>(i===0?`<span class="node">${p.from}<small>${p.from_type}</small></span>`:'')+`<span class="edge">${p.dir==='out'?'—'+p.rel+'→':'←'+p.rel+'—'}</span><span class="node">${p.to}<small>${p.to_type} · rev ${p.revision}</small></span>`).join('')+'</div>':'';
@@ -127,17 +143,19 @@ async function ask(agent){
   }catch(e){$('#out').innerHTML=`<span class="bad">${e.message}</span>`}finally{bs.forEach(b=>b.disabled=false);routes()}
 }
 $('#askC').onclick=()=>ask('C');$('#askB').onclick=()=>ask('B');
-$('#mut').onclick=async()=>{const r=await j('/api/mutate',{method:'POST'});$('#heal').insertAdjacentHTML('beforeend',`<div><b>Fact changed:</b> ${r.fact}<br><span class="muted">retired relation ${r.retired_relation} → templates retired: ${r.retired_templates.join(', ')||'none'}</span>${r.try_question?`<br>Try: <a href="#" class="tryq">${r.try_question}</a> (expect <b>${r.expected_answer}</b>)`:''}</div>`);document.querySelectorAll('.tryq').forEach(a=>a.onclick=e=>{e.preventDefault();$('#q').value=a.textContent;window.scrollTo({top:$('#q').offsetTop-80,behavior:'smooth'})});routes()};
-$('#reval').onclick=async()=>{const r=await j('/api/revalidate',{method:'POST'});$('#heal').insertAdjacentHTML('beforeend',`<div><b>Rebuilt:</b> ${r.rebuilt.map(t=>t.id+' v'+t.version+' ('+t.support+' supporting traces)').join(', ')||'nothing to rebuild'}</div>`);routes()};
-async function routes(){const r=await j('/api/routes');$('#routes').innerHTML=r.routes.map(t=>`<div class="rt"><b>${t.id}</b> <span class="st-${t.status}">${t.status}</span> v${t.version} · support ${t.support} · depends on ${t.depends_on} relation versions · uses ${t.uses}<br><code>${t.signature}</code><div class="muted" style="font-size:13px">${t.exemplars.slice(0,2).map(e=>'“'+e+'”').join('<br>')}</div><a href="#" class="showq" data-id="${t.id}" style="font-size:13px">show the one-query Cypher</a><div class="qbox" id="q-${t.id}"></div></div>`).join('')+`<p class="muted">${r.unpromoted_hypotheses} unpromoted meta-path hypotheses (coincidental or redundant paths) kept as evidence.</p>`;
+$('#mut').onclick=async()=>{const r=await j('api/mutate',{method:'POST'});$('#heal').insertAdjacentHTML('beforeend',`<div><b>Fact changed:</b> ${r.fact}<br><span class="muted">retired relation ${r.retired_relation} → templates retired: ${r.retired_templates.join(', ')||'none'}</span>${r.try_question?`<br>Try: <a href="#" class="tryq">${r.try_question}</a> (expect <b>${r.expected_answer}</b>)`:''}</div>`);document.querySelectorAll('.tryq').forEach(a=>a.onclick=e=>{e.preventDefault();$('#q').value=a.textContent;window.scrollTo({top:$('#q').offsetTop-80,behavior:'smooth'})});routes()};
+$('#reval').onclick=async()=>{const r=await j('api/revalidate',{method:'POST'});$('#heal').insertAdjacentHTML('beforeend',`<div><b>Rebuilt:</b> ${r.rebuilt.map(t=>t.id+' v'+t.version+' ('+t.support+' supporting traces)').join(', ')||'nothing to rebuild'}</div>`);routes()};
+async function routes(){const r=await j('api/routes');$('#routes').innerHTML=r.routes.map(t=>`<div class="rt"><b>${t.id}</b> <span class="st-${t.status}">${t.status}</span> v${t.version} · support ${t.support} · depends on ${t.depends_on} relation versions · uses ${t.uses}<br><code>${t.signature}</code><div class="muted" style="font-size:13px">${t.exemplars.slice(0,2).map(e=>'“'+e+'”').join('<br>')}</div><a href="#" class="showq" data-id="${t.id}" style="font-size:13px">show the one-query Cypher</a><div class="qbox" id="q-${t.id}"></div></div>`).join('')+`<p class="muted">${r.unpromoted_hypotheses} unpromoted meta-path hypotheses (coincidental or redundant paths) kept as evidence.</p>`;
   document.querySelectorAll('.showq').forEach(a=>a.onclick=async e=>{e.preventDefault();const box=$('#q-'+a.dataset.id);if(box.innerHTML){box.innerHTML='';return}
-    try{const x=await j('/api/route_example/'+a.dataset.id);box.innerHTML=`<pre>${x.cypher}</pre><div class="muted" style="font-size:13px">live on the graph: start <b>${x.start}</b> → <b>${x.answers.join(', ')}</b> (one query)</div>`}catch(err){box.innerHTML='<span class="bad">'+err.message+'</span>'}})}
+    try{const x=await j('api/route_example/'+a.dataset.id);box.innerHTML=`<pre>${x.cypher}</pre><div class="muted" style="font-size:13px">live on the graph: start <b>${x.start}</b> → <b>${x.answers.join(', ')}</b> (one query)</div>`}catch(err){box.innerHTML='<span class="bad">'+err.message+'</span>'}})}
 function renderHealRec(h){if(!h){$('#healrec').innerHTML='<span class="muted">Run make heal.</span>';return}
   const L=h.timeline.filter(e=>e.event!=='learned').map(e=>{if(e.event==='scenario')return `<div><b>Scenario:</b> “${e.question}” — on-call for ${e.team}: ${e.on_call_before} → ${e.on_call_after}</div>`;
   if(e.event.startsWith('ask:'))return `<div><b>${e.event.slice(4).replaceAll('_',' ')}</b> (gold ${e.gold}): C → ${e.desire.answer.join(', ')} ${e.desire.correct?'<span class="ok">✓</span>':'<span class="bad">✗</span>'} ${e.desire.route?'via '+e.desire.route:'(fallback walk)'}, ${e.desire.llm_calls} LLM calls · stale-route agent → ${e.stale.answer.join(', ')} ${e.stale.correct?'<span class="ok">✓</span>':'<span class="bad">✗</span>'}</div>`;
   if(e.event==='fact_changed')return `<div><b>Fact changed:</b> ${e.fact}</div>`;
   if(e.event==='templates_retired')return `<div><b>Retired:</b> ${e.ids.map(x=>x[0]+' v'+x[2]).join(', ')}</div>`;
   if(e.event==='templates_rebuilt')return `<div><b>Rebuilt:</b> ${e.ids.map(x=>x[0]+' v'+x[1]).join(', ')}</div>`;return ''}).join('');$('#healrec').innerHTML=L}
+if(STATIC){$('#staticnote').hidden=false;$('#livelink').href=LIVE;$('#livelink').textContent=LIVE;
+  ['#askC','#askB','#mut','#reval'].forEach(x=>{const b=$(x);b.disabled=true;b.title='live demo only'});}
 load().catch(e=>{$('#meta').textContent='error: '+e.message});
 </script>
 </body>

@@ -76,6 +76,22 @@ def main() -> None:
         lines += [f"HydraDB gate (`make gate`): **{'passed' if g.get('passed') else 'FAILED'}**: "
                   + ", ".join(k for k in g.get("checks", {}) if not k.endswith("error")) + "."]
     text = (ROOT / "README.md").read_text()
+    sv = R / "savings.json"
+    if sv.exists() and "<!-- GTM:START -->" in text:
+        d = json.loads(sv.read_text())
+        key = next(k for k in d["cost_per_1000_tasks_usd"] if k.startswith("claude-sonnet"))
+        row = d["cost_per_1000_tasks_usd"][key]
+        save = row["B_graph"] - row["C_desire"]
+        vol = d["volume_per_month"]
+        g = [f"**Measured economics** (held-out, from `results/savings.json`; prices are list-price inputs). At {key} "
+             f"prices, the same agent costs **${row['B_graph']:.2f} per 1,000 tasks without routes and "
+             f"${row['C_desire']:.2f} with Desire Paths**, a saving of ${save:.2f} per 1,000 tasks "
+             f"(${save * vol / 1000:,.0f}/month at {vol:,} tasks/month), at the same accuracy. One-time learning cost: "
+             f"${row.get('C_learning_one_time', 0):.2f}. Priced at 20% of the saving, the fee would be "
+             f"${0.2 * save:.2f} per 1,000 tasks and the customer keeps ${0.8 * save:.2f}. The dashboard's calculator "
+             f"redoes this at your own volume and prices."]
+        a_, b_ = text.index("<!-- GTM:START -->"), text.index("<!-- GTM:END -->")
+        text = text[: a_ + len("<!-- GTM:START -->")] + "\n" + "\n".join(g) + "\n" + text[b_:]
     a_, b_ = text.index("<!-- RESULTS:START -->"), text.index("<!-- RESULTS:END -->")
     text = text[: a_ + len("<!-- RESULTS:START -->")] + "\n" + "\n".join(lines) + "\n" + text[b_:]
     (ROOT / "README.md").write_text(text)

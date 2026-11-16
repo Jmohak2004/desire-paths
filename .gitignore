@@ -11,3 +11,4 @@ scratch/
 .brew.log
 .hydradb/
 *.egg-info/
+site/
