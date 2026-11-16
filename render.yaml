@@ -7,7 +7,7 @@ services:
     dockerfilePath: ./deploy/hosted.Dockerfile
     dockerContext: .
     healthCheckPath: /api/status
-    autoDeploy: true
+    autoDeploy: false
     envVars:
       - key: GEMINI_API_KEY
         sync: false

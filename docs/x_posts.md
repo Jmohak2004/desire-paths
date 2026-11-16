@@ -5,7 +5,7 @@ Every number comes from `results/` (Gemma 4, self-hosted HydraDB, 3 seeds, held-
 
 Links:
 - Write-up (blog): https://jmohak2004.github.io/desire-paths/blog/
-- Live demo: https://denver-spokesman-music-wall.trycloudflare.com
+- Live demo: https://desire-paths-qhfa.onrender.com
 - Always-up snapshot: https://jmohak2004.github.io/desire-paths/
 - Code: https://github.com/Jmohak2004/desire-paths
 
@@ -64,7 +64,7 @@ Attach: `docs/img/after_rebuild.png`.
 > Measured at Sonnet list prices: $6.92 → $0.72 per 1,000 tasks.
 >
 > Built on the open-source HydraDB engine, self-hosted.
-> Live: https://denver-spokesman-music-wall.trycloudflare.com
+> Live: https://desire-paths-qhfa.onrender.com
 > Code: https://github.com/Jmohak2004/desire-paths
 
 ---

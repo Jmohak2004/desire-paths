@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 R = ROOT / "results"
-LIVE = "https://denver-spokesman-music-wall.trycloudflare.com"
+LIVE = "https://desire-paths-qhfa.onrender.com"
 
 
 def main() -> None:

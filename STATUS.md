@@ -4,7 +4,7 @@ _Updated: 2026-11-16 ~12:00 IST_
 
 ## Submission checklist (hackathon deadline 5 PM IST; tracks and Bounty #2 by 11 PM IST)
 - [x] Public repo: https://github.com/Jmohak2004/desire-paths (CI green)
-- [x] Live link: https://denver-spokesman-music-wall.trycloudflare.com (Cloudflare quick tunnel to the dashboard on
+- [x] Live link: https://desire-paths-qhfa.onrender.com (Cloudflare quick tunnel to the dashboard on
       this Mac; the Mac must stay on, plugged in and online. If cloudflared restarts the URL changes; see `scratch/tunnel.log`)
 - [x] Always-up read-only snapshot: https://jmohak2004.github.io/desire-paths/ (GitHub Pages; rebuild with `make site`,
       then push `site/` to the gh-pages branch)

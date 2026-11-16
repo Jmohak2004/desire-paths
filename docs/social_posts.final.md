@@ -26,7 +26,7 @@ routes retire, rebuild as v2, and answers stay right, while a stale-route agent 
 5/ Built on the open-source HydraDB engine (self-hosted, from source) and SelfGraph. Everything is measured and
 reproducible with `make eval`.
 
-Live: https://denver-spokesman-music-wall.trycloudflare.com
+Live: https://desire-paths-qhfa.onrender.com
 Code: https://github.com/Jmohak2004/desire-paths
 
 ## LinkedIn
@@ -49,7 +49,7 @@ Who pays for this: any team running agents over company knowledge (on-call routi
 ownership questions) where the same question shapes repeat thousands of times a day. Agent cost per task falls as
 your graph is used.
 
-Built on the open-source HydraDB engine and SelfGraph. Live demo: https://denver-spokesman-music-wall.trycloudflare.com · Code:
+Built on the open-source HydraDB engine and SelfGraph. Live demo: https://desire-paths-qhfa.onrender.com · Code:
 https://github.com/Jmohak2004/desire-paths
 
 #HydraDB #AIagents #knowledgegraph #LLM

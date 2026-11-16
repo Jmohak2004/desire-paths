@@ -102,4 +102,4 @@ none of these.
 
 ## Try it
 
-Live demo: https://denver-spokesman-music-wall.trycloudflare.com · Code: https://github.com/Jmohak2004/desire-paths · `make demo`
+Live demo: https://desire-paths-qhfa.onrender.com · Code: https://github.com/Jmohak2004/desire-paths · `make demo`

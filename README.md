@@ -4,8 +4,8 @@
 
 **Agent cost per task falls as your graph is used.**
 
-**Live demo:** https://denver-spokesman-music-wall.trycloudflare.com (interactive, served from a self-hosted HydraDB
-node) · **Always-up snapshot:** https://jmohak2004.github.io/desire-paths/ (measured results; read-only) ·
+**Live demo:** https://desire-paths-qhfa.onrender.com (interactive; HydraDB built from source and the dashboard in
+one container on Render; a cold start after idle takes a few minutes) · **Always-up snapshot:** https://jmohak2004.github.io/desire-paths/ (measured results; read-only) ·
 HydraDB hackathon, **Track 1: the self-improving graph**. Learned path compression: the graph learns, from its own
 correct answers, which typed paths to compile into single queries.
 
