@@ -2,59 +2,59 @@
  "volume_per_month": 100000,
  "per_task_measured": {
   "A_vector": {
-   "input_tokens": 600.8333333333334,
-   "output_tokens": 27.287037037037038,
-   "llm_calls": 2.1296296296296298,
+   "input_tokens": 705.1481481481482,
+   "output_tokens": 28.25,
+   "llm_calls": 2.5185185185185186,
    "graph_calls": 0.0,
-   "accuracy": 0.3425925925925926,
-   "latency_s": 1.902787037037037
+   "accuracy": 0.7129629629629629,
+   "latency_s": 21.576175925925927
   },
   "B_graph": {
-   "input_tokens": 3154.861111111111,
-   "output_tokens": 77.14814814814815,
-   "llm_calls": 4.833333333333333,
-   "graph_calls": 3.8333333333333335,
-   "accuracy": 1.0,
-   "latency_s": 6.6960092592592595
+   "input_tokens": 3128.8055555555557,
+   "output_tokens": 66.46296296296296,
+   "llm_calls": 4.87037037037037,
+   "graph_calls": 3.861111111111111,
+   "accuracy": 0.9907407407407407,
+   "latency_s": 23.524712962962962
   },
   "C_desire": {
-   "input_tokens": 439.9351851851852,
-   "output_tokens": 11.537037037037036,
-   "llm_calls": 0.6666666666666666,
-   "graph_calls": 2.5370370370370368,
+   "input_tokens": 316.7407407407407,
+   "output_tokens": 9.101851851851851,
+   "llm_calls": 0.5370370370370371,
+   "graph_calls": 2.3981481481481484,
    "accuracy": 1.0,
-   "latency_s": 2.7029074074074075
+   "latency_s": 9.839444444444444
   }
  },
  "learning_one_time": {
-  "input_tokens": 90992.66666666667,
-  "output_tokens": 2227.3333333333335,
+  "input_tokens": 83525.33333333333,
+  "output_tokens": 1838.0,
   "tasks": 48.0
  },
  "cost_per_1000_tasks_usd": {
   "small-open-model (0.10 / 0.40)": {
-   "A_vector": 0.071,
-   "B_graph": 0.3463,
-   "C_desire": 0.0486,
-   "C_learning_one_time": 0.01
+   "A_vector": 0.0818,
+   "B_graph": 0.3395,
+   "C_desire": 0.0353,
+   "C_learning_one_time": 0.0091
   },
   "claude-haiku-5-5 list (0.10 / 0.50)": {
-   "A_vector": 0.0737,
-   "B_graph": 0.3541,
-   "C_desire": 0.0498,
-   "C_learning_one_time": 0.0102
+   "A_vector": 0.0846,
+   "B_graph": 0.3461,
+   "C_desire": 0.0362,
+   "C_learning_one_time": 0.0093
   },
   "claude-sonnet-5-5 list (2.00 / 10.00)": {
-   "A_vector": 1.4745,
-   "B_graph": 7.0812,
-   "C_desire": 0.9952,
-   "C_learning_one_time": 0.2043
+   "A_vector": 1.6928,
+   "B_graph": 6.9222,
+   "C_desire": 0.7245,
+   "C_learning_one_time": 0.1854
   },
   "claude-opus-5-5 list (4.00 / 20.00)": {
-   "A_vector": 2.9491,
-   "B_graph": 14.1624,
-   "C_desire": 1.9905,
-   "C_learning_one_time": 0.4085
+   "A_vector": 3.3856,
+   "B_graph": 13.8445,
+   "C_desire": 1.449,
+   "C_learning_one_time": 0.3709
   }
  },
  "source": "results/summary.json (held-out, final round, mean over seeds)"

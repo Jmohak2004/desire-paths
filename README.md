@@ -21,10 +21,11 @@ rebuild themselves against the current graph.
 <!-- RESULTS:START -->
 ## Results (measured, `make eval`)
 
-Held-out questions about entities never seen in training. Seeds [0, 1, 2] (mean ± std across seeds), model `poolside/laguna-xs-2.1` at temperature 0, backend **hydradb**, generated 2026-11-16 04:16:19.
+Held-out questions about entities never seen in training. Seeds [0, 1, 2] (mean ± std across seeds), model `gemma-4-26b-a4b-it` at temperature 0, backend **hydradb**, generated 2026-11-16 11:20:59.
+- **Accuracy rises with use:** held-out questions answered correctly within a budget of 1 LLM call go from **0.00 to 0.95 ± 0.01** over 4 rounds. The graph agent without routes (B) scores 0.00 under the same budget, vector RAG (A) 0.02.
 
-- After 4 learning rounds, **C uses 86% fewer LLM calls and 86% fewer tokens per task than B** (the same agent without routes), at accuracy 1.00 vs 1.00.
-- Iterative vector RAG (A) reaches 0.34 accuracy on the same questions.
+- After 4 learning rounds, **C uses 89% fewer LLM calls and 90% fewer tokens per task than B** (the same agent without routes), at accuracy 1.00 vs 0.99.
+- Iterative vector RAG (A) reaches 0.71 accuracy on the same questions.
 
 ![accuracy within one LLM call](docs/img/curve.png)
 
@@ -32,29 +33,31 @@ Held-out questions about entities never seen in training. Seeds [0, 1, 2] (mean 
 
 | agent | accuracy | LLM calls / q | input tok / q | output tok / q | latency s / q | graph calls / q |
 |---|---|---|---|---|---|---|
-| A_vector | 0.34 ± 0.05 | 2.13 ± 0.08 | 601 ± 31 | 27 ± 1 | 1.90 ± 0.50 | 0.0 ± 0.0 |
-| B_graph | 1.00 ± 0.00 | 4.83 ± 0.00 | 3155 ± 26 | 77 ± 0 | 6.70 ± 0.58 | 3.8 ± 0.0 |
-| C_desire | 1.00 ± 0.00 | 0.67 ± 0.05 | 440 ± 27 | 12 ± 1 | 2.70 ± 0.31 | 2.5 ± 0.0 |
+| A_vector | 0.71 ± 0.03 | 2.52 ± 0.03 | 705 ± 9 | 28 ± 0 | 21.58 ± 0.80 | 0.0 ± 0.0 |
+| B_graph | 0.99 ± 0.01 | 4.87 ± 0.05 | 3129 ± 6 | 66 ± 0 | 23.52 ± 2.75 | 3.9 ± 0.0 |
+| C_desire | 1.00 ± 0.00 | 0.54 ± 0.07 | 317 ± 37 | 9 ± 1 | 9.84 ± 1.91 | 2.4 ± 0.0 |
 
 
 #### Held-out, round 0 (before any learning)
 
 | agent | accuracy | LLM calls / q | input tok / q | output tok / q | latency s / q | graph calls / q |
 |---|---|---|---|---|---|---|
-| A_vector | 0.34 ± 0.05 | 2.13 ± 0.08 | 601 ± 31 | 27 ± 1 | 1.90 ± 0.50 | 0.0 ± 0.0 |
-| B_graph | 1.00 ± 0.00 | 4.83 ± 0.00 | 3155 ± 26 | 77 ± 0 | 6.70 ± 0.58 | 3.8 ± 0.0 |
-| C_desire | 1.00 ± 0.00 | 4.83 ± 0.00 | 3155 ± 26 | 77 ± 0 | 6.64 ± 0.61 | 3.8 ± 0.0 |
+| A_vector | 0.71 ± 0.03 | 2.52 ± 0.03 | 705 ± 9 | 28 ± 0 | 21.58 ± 0.80 | 0.0 ± 0.0 |
+| B_graph | 0.99 ± 0.01 | 4.87 ± 0.05 | 3129 ± 6 | 66 ± 0 | 23.52 ± 2.75 | 3.9 ± 0.0 |
+| C_desire | 0.99 ± 0.01 | 4.87 ± 0.05 | 3129 ± 6 | 66 ± 0 | 23.78 ± 2.79 | 3.9 ± 0.0 |
 
 
-#### C learning curve (held-out, per round)
+#### Learning curve (held-out, per round)
 
-| round | accuracy | LLM calls / q | input tok / q | routed share |
-|---|---|---|---|---|
-| 0 | 1.00 ± 0.00 | 4.83 ± 0.00 | 3155 | 0.00 |
-| 1 | 1.00 ± 0.00 | 4.63 ± 0.49 | 2720 | 0.21 |
-| 2 | 1.00 ± 0.00 | 1.74 ± 0.34 | 1118 | 0.78 |
-| 3 | 1.00 ± 0.00 | 0.67 ± 0.05 | 440 | 0.94 |
-| 4 | 1.00 ± 0.00 | 0.67 ± 0.05 | 440 | 0.94 |
+Accuracy within a budget of 1 LLM call per question (a hard cap: an answer that needs more calls counts as wrong). A and B hold no learning state, so their values are the same every round.
+
+| round | C: accuracy @ 1 call | C: accuracy @ 2 calls | C: accuracy (no cap) | C: LLM calls / q | C: tokens / correct answer | C: routed share | B: accuracy @ 1 call | A: accuracy @ 1 call |
+|---|---|---|---|---|---|---|---|---|
+| 0 | **0.00 ± 0.00** | 0.00 | 0.99 ± 0.01 | 4.87 ± 0.05 | 3226 | 0.00 | 0.00 | 0.02 |
+| 1 | **0.28 ± 0.08** | 0.28 | 0.99 ± 0.01 | 4.24 ± 0.34 | 2500 | 0.28 | 0.00 | 0.02 |
+| 2 | **0.83 ± 0.14** | 0.83 | 1.00 ± 0.00 | 1.22 ± 0.79 | 747 | 0.83 | 0.00 | 0.02 |
+| 3 | **0.95 ± 0.01** | 0.95 | 1.00 ± 0.00 | 0.54 ± 0.07 | 326 | 0.95 | 0.00 | 0.02 |
+| 4 | **0.95 ± 0.01** | 0.95 | 1.00 ± 0.00 | 0.54 ± 0.07 | 326 | 0.95 | 0.00 | 0.02 |
 
 A and B hold no learning state: measured once per seed (round 0) and drawn flat across rounds.
 
@@ -76,18 +79,18 @@ Per-task tokens are measured (held-out, final learning round, mean over seeds). 
 
 | agent | accuracy | LLM calls / task | input tok / task | output tok / task |
 |---|---|---|---|---|
-| A_vector | 0.34 | 2.13 | 601 | 27 |
-| B_graph | 1.00 | 4.83 | 3155 | 77 |
-| C_desire | 1.00 | 0.67 | 440 | 12 |
+| A_vector | 0.71 | 2.52 | 705 | 28 |
+| B_graph | 0.99 | 4.87 | 3129 | 66 |
+| C_desire | 1.00 | 0.54 | 317 | 9 |
 
 Cost per 1,000 tasks (USD), and per month at 100,000 tasks:
 
 | price point ($/1M in / out) | A_vector | B_graph | C_desire | C vs B saving | C one-time learning |
 |---|---|---|---|---|---|
-| small-open-model (0.10 / 0.40) | $0.071 ($7/mo) | $0.346 ($35/mo) | $0.049 ($5/mo) | 86% | $0.010 |
-| claude-haiku-5-5 list (0.10 / 0.50) | $0.074 ($7/mo) | $0.354 ($35/mo) | $0.050 ($5/mo) | 86% | $0.010 |
-| claude-sonnet-5-5 list (2.00 / 10.00) | $1.474 ($147/mo) | $7.081 ($708/mo) | $0.995 ($100/mo) | 86% | $0.204 |
-| claude-opus-5-5 list (4.00 / 20.00) | $2.949 ($295/mo) | $14.162 ($1,416/mo) | $1.990 ($199/mo) | 86% | $0.408 |
+| small-open-model (0.10 / 0.40) | $0.082 ($8/mo) | $0.340 ($34/mo) | $0.035 ($4/mo) | 90% | $0.009 |
+| claude-haiku-5-5 list (0.10 / 0.50) | $0.085 ($8/mo) | $0.346 ($35/mo) | $0.036 ($4/mo) | 90% | $0.009 |
+| claude-sonnet-5-5 list (2.00 / 10.00) | $1.693 ($169/mo) | $6.922 ($692/mo) | $0.725 ($72/mo) | 90% | $0.185 |
+| claude-opus-5-5 list (4.00 / 20.00) | $3.386 ($339/mo) | $13.845 ($1,384/mo) | $1.449 ($145/mo) | 90% | $0.371 |
 
 HydraDB gate (`make gate`): **passed**: selfgraph_insert, route_single_query, versioned_supersede, neighbors, raw_cypher_fallback.
 <!-- RESULTS:END -->
@@ -217,11 +220,13 @@ calls.
   the first run and 0.67 on the rerun; accuracy was unchanged.
 - **Latency** = measured LLM time per call (NVIDIA free tier, so queueing is included) plus graph time measured on
   every run. Held-out questions are scored one at a time.
-- **HydraDB dev-store slowdown (cause not identified).** After a night of runs (many namespaces plus repeated
-  writes) the single local node slowed down a lot: the test suite took 19 minutes, with 2 errors. On a fresh store
-  it passes in 22 s. A controlled test, loading the same graph into 16 namespaces on a fresh node, showed flat load
-  times (15–19 s each), so namespace count alone doesn't explain it. `make demo` starts from a fresh store, and
-  `make hydradb-reset` wipes it.
+- **HydraDB dev-store slowdown.** Over hours of runs the single local node slowed down a lot: a route query went from
+  about 7 ms to a 586 ms median, and the test suite from 22 s to 19 minutes. A controlled test, loading the same
+  graph into 16 namespaces on a fresh node, showed flat load times, so namespace count alone doesn't explain it.
+  A likely contributor (not proven): in `CLOUD_PROVIDER=local` mode, HydraDB's storage garbage collection fails on
+  every cycle (`put_opts with PutMode::Update` is not implemented on the local filesystem; the node logs "error
+  collecting garbage" for manifests and compactions), so old files are never reclaimed. `make demo` starts from a
+  fresh store, and `make hydradb-reset` wipes it. A cloud object store should not have this limitation.
 - **HydraDB** here is a single local v0.4.0 node built from source, not HydraDB Cloud. The same code points at any
   Bolt endpoint via `HYDRADB_URI`.
 

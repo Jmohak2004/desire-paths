@@ -1,10 +1,10 @@
 {
- "model": "poolside/laguna-xs-2.1",
+ "model": "gemma-4-26b-a4b-it",
  "seed": 0,
  "backend": "hydradb",
  "timeline": [
   {
-   "t": 229.44,
+   "t": 292.17,
    "event": "learned",
    "active": [
     [
@@ -31,11 +31,16 @@
      "Re79a",
      "(Project)-[OWNED_BY]->()-[MANAGED_BY]->()",
      1
+    ],
+    [
+     "Rf35e",
+     "(Incident)<-[FIXES]-()-[AUTHORED_BY]->()-[MEMBER_OF]->()-[MANAGED_BY]->()",
+     1
     ]
    ]
   },
   {
-   "t": 229.44,
+   "t": 292.18,
    "event": "scenario",
    "template": "Rc346",
    "version": 1,
@@ -49,7 +54,7 @@
    ]
   },
   {
-   "t": 231.91,
+   "t": 294.02,
    "event": "ask:before_change",
    "gold": "Chloe Ilic",
    "desire": {
@@ -73,7 +78,7 @@
    }
   },
   {
-   "t": 231.94,
+   "t": 294.05,
    "event": "fact_changed",
    "retired": "relation:8645cef124c1b85f346c0675",
    "new": "relation:4aa8a1fe737a3c16cdd0ffe7",
@@ -81,7 +86,7 @@
    "fact": "Insights Platform ON_CALL Chloe Ilic -> Chloe Jansen"
   },
   {
-   "t": 231.94,
+   "t": 294.05,
    "event": "templates_retired",
    "ids": [
     [
@@ -92,7 +97,7 @@
    ]
   },
   {
-   "t": 235.08,
+   "t": 359.52,
    "event": "ask:after_change_template_retired",
    "gold": "Chloe Jansen",
    "desire": {
@@ -116,7 +121,7 @@
    }
   },
   {
-   "t": 236.12,
+   "t": 360.26,
    "event": "templates_rebuilt",
    "ids": [
     [
@@ -128,7 +133,7 @@
    "still_depends_on_retired": []
   },
   {
-   "t": 237.32,
+   "t": 361.21,
    "event": "ask:after_rebuild",
    "gold": "Chloe Jansen",
    "desire": {
