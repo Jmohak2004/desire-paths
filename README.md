@@ -26,7 +26,7 @@ Held-out questions about entities never seen in training. Seeds [0, 1, 2] (mean 
 - After 4 learning rounds, **C uses 86% fewer LLM calls and 86% fewer tokens per task than B** (the same agent without routes), at accuracy 1.00 vs 1.00.
 - Iterative vector RAG (A) reaches 0.34 accuracy on the same questions.
 
-![learning curve](docs/img/curve.png)
+![accuracy within one LLM call](docs/img/curve.png)
 
 #### Held-out, after 4 learning rounds
 
