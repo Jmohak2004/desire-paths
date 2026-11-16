@@ -1,0 +1,13 @@
+.git
+.venv
+.hydradb
+scratch
+site
+docs
+results/graphs
+results/archive
+results/cache/emb_*
+results/cache/*.npy
+**/__pycache__
+*.kuzu
+.env

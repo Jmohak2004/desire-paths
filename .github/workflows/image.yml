@@ -1,0 +1,51 @@
+name: image
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [deploy/**, desirepaths/**, dashboard/**, bench/**, .github/workflows/image.yml]
+permissions:
+  contents: read
+  packages: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: hydra-db/hydradb
+          ref: v0.4.0
+          path: hydradb
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/Dockerfile
+          load: true
+          tags: desire-paths:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+      - name: Smoke test (HydraDB boots, graph loads, dashboard serves)
+        run: |
+          docker run -d --name dp -p 7860:7860 desire-paths:test
+          for i in $(seq 1 90); do curl -sf http://127.0.0.1:7860/api/status && break; sleep 2; done
+          echo; curl -sf http://127.0.0.1:7860/api/status | grep '"backend":"hydradb"'
+          curl -sf http://127.0.0.1:7860/api/routes | grep -o '"status":"active"' | wc -l
+          curl -sf -X POST http://127.0.0.1:7860/api/ask -H 'content-type: application/json' \
+            -d '{"question":"Who manages the team that owns project Mesa?","agent":"C"}'
+          echo; docker logs dp | tail -20
+      - name: Push
+        run: |
+          IMG=ghcr.io/$(echo "${{ github.repository_owner }}" | tr 'A-Z' 'a-z')/desire-paths
+          docker tag desire-paths:test $IMG:latest
+          docker tag desire-paths:test $IMG:${{ github.sha }}
+          docker push $IMG:latest
+          docker push $IMG:${{ github.sha }}
