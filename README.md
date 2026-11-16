@@ -237,6 +237,14 @@ make record      # backup demo video from the live dashboard -> docs/demo.mp4
 make demo        # fresh HydraDB node + dashboard in one command (what to run before recording)
 ```
 
+### Deploy (always on)
+
+`deploy/Dockerfile` builds one container: HydraDB's open-source `graph-node` compiled from source (v0.4.0) plus the
+dashboard. `deploy/start.sh` starts HydraDB inside the container, waits until it is ready, and serves the dashboard on
+port 7860. `.github/workflows/image.yml` builds the image, boots it as a smoke test (HydraDB up, graph loaded, a route
+answered), and publishes it to `ghcr.io/jmohak2004/desire-paths`. `deploy/hf-space/` is a two-file Hugging Face
+Space that runs that image; `deploy/hf_deploy.py` creates the Space and stores `GEMINI_API_KEY` as a Space secret.
+
 Without `HYDRADB_URI`, everything runs on SelfGraph's embedded Kuzu store, and the results record which backend
 was used. `make eval` replays LLM responses from `results/cache/llm.jsonl` when the exact request was already made.
 The cache replays the token usage and latency measured when the call was made live. `DP_CACHE=off` forces live
