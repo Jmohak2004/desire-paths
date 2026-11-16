@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths: [deploy/**, desirepaths/**, dashboard/**, bench/**, .github/workflows/image.yml]
 permissions:
-  contents: read
+  contents: write
   packages: write
 jobs:
   build:
@@ -49,3 +49,14 @@ jobs:
           docker tag desire-paths:test $IMG:${{ github.sha }}
           docker push $IMG:latest
           docker push $IMG:${{ github.sha }}
+      - name: Publish the HydraDB server binary as a release asset (public download for the Space)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker create --name extract desire-paths:test
+          docker cp extract:/usr/local/bin/graph-node graph-node
+          tar czf graph-node-linux-x86_64.tar.gz graph-node
+          sha256sum graph-node-linux-x86_64.tar.gz
+          gh release view hydradb-v0.4.0 >/dev/null 2>&1 || gh release create hydradb-v0.4.0 --title "HydraDB v0.4.0 graph-node (built from source)" \
+            --notes "graph-node from hydra-db/hydradb v0.4.0, built by .github/workflows/image.yml (features: server-runtime) for linux x86_64 (Ubuntu 24.04). Used by the Hugging Face Space."
+          gh release upload hydradb-v0.4.0 graph-node-linux-x86_64.tar.gz --clobber
