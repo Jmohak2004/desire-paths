@@ -1,41 +1,25 @@
-name: errno-probe
+name: mem-probe
 on:
   push:
     branches: [probe/errno]
+permissions:
+  contents: read
+  packages: read
 jobs:
-  probe:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        ref: [main, fix]
-    runs-on: ${{ matrix.os }}
+  mem:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v5
+      - uses: docker/login-action@v3
         with:
-          python-version: "3.11"
-      - shell: bash
-        run: |
-          if [ "${{ matrix.ref }}" = "main" ]; then R=https://github.com/hydra-db/selfgraph; B=main; else R=https://github.com/Jmohak2004/selfgraph; B=fix/connect-errno-by-code; fi
-          git clone -q --depth 1 --branch $B $R sg && cd sg && pip install -q -e ".[kuzu,dev]"
-      - shell: python
-        working-directory: sg
-        run: |
-          import errno, socket, sys
-          from selfgraph.errors import error_reason
-          s = socket.socket()
-          try:
-              s.connect(("127.0.0.1", 9))
-          except OSError as e:
-              try:
-                  try:
-                      raise e
-                  except OSError as inner:
-                      raise RuntimeError("Cannot connect to API: ") from inner
-              except RuntimeError as x:
-                  print("RESULT", sys.platform, "${{ matrix.ref }}", "real refusal errno", e.errno, "->", repr(error_reason(x)))
-      - shell: bash
-        working-directory: sg
-        env:
-          SELFGRAPH_TEST_STORE: kuzu
-        run: python -m pytest -q -p no:cacheprovider tests/test_llm.py 2>&1 | tail -3 | sed 's/^/TESTS ${{ matrix.ref }} /'
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          docker run -d --name dp -p 7860:7860 ghcr.io/jmohak2004/desire-paths:latest
+          for i in $(seq 1 90); do curl -sf http://127.0.0.1:7860/api/status >/dev/null && break; sleep 2; done
+          echo "MEM after boot: $(docker stats --no-stream --format '{{.MemUsage}}' dp)"
+          for q in "Who manages the team that owns project Mesa?" "Which project is the service documented in 'Hidden Harbor Notes' part of?"; do
+            curl -sf -X POST http://127.0.0.1:7860/api/ask -H 'content-type: application/json' -d "{\"question\":\"$q\",\"agent\":\"C\"}" >/dev/null; done
+          curl -sf -X POST http://127.0.0.1:7860/api/mutate >/dev/null; curl -sf -X POST http://127.0.0.1:7860/api/revalidate >/dev/null
+          echo "MEM after asks+heal: $(docker stats --no-stream --format '{{.MemUsage}}' dp)"
+          docker exec dp sh -c 'for p in $(pgrep -f graph-node) $(pgrep -f uvicorn); do echo "PROC $p $(grep VmRSS /proc/$p/status)"; done'
