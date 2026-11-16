@@ -178,6 +178,10 @@ vector store doesn't have:
 
 ## How it works
 
+![Desire Paths architecture](docs/img/architecture.png)
+
+Interactive version with a numbered talk track: https://jmohak2004.github.io/desire-paths/architecture/
+
 ```
  question ─► keyword search (1 graph call) ─► masked shape known? ─yes─► its route ─► ONE Cypher query ─► answer
                                                    │ no                  (0 LLM calls; any entity of that type)

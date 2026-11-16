@@ -54,6 +54,10 @@ def main() -> None:
         body = markdown.markdown(blog.read_text(), extensions=["tables", "fenced_code"])
         (SITE / "blog").mkdir()
         (SITE / "blog" / "index.html").write_text(BLOG_PAGE.replace("{{BODY}}", body))
+    arch = ROOT / "docs" / "architecture.html"
+    if arch.exists():  # the architecture diagram + talk track
+        (SITE / "architecture").mkdir()
+        shutil.copy(arch, SITE / "architecture" / "index.html")
     print("site/ built:", sorted(str(p.relative_to(SITE)) for p in SITE.rglob("*") if p.is_file()))
 
 
