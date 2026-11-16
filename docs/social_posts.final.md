@@ -1,11 +1,11 @@
-# Social posts (tag the HydraDB account; check the exact handle before posting)
+# Social posts (HydraDB on X: @hydra_db, from the hydra-db GitHub organisation profile)
 
 ## X thread
 
 1/ Agents answering multi-hop questions pay one LLM call per hop, every time, even for questions they've answered
 100 times.
 
-I built Desire Paths at the @hydradb hackathon: a graph that learns the routes its agents keep walking, so it gets
+I built Desire Paths at the @hydra_db hackathon: a graph that learns the routes its agents keep walking, so it gets
 cheaper and sharper with use. 🧵
 
 2/ How: every successful walk is logged as a typed path, for example Person→Project→Team→On-call. Paths that keep

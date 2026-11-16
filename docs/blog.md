@@ -32,6 +32,23 @@ frequent ones into **route templates** that run as **one graph query**.
 
 {{RESULTS}}
 
+## How HydraDB and SelfGraph made this possible
+
+- **A real graph engine I could run myself.** HydraDB's open-source engine built from source on a laptop in about
+  6 minutes and speaks Bolt, so the Neo4j driver and SelfGraph worked against it unchanged. Every number in this
+  post was measured on that self-hosted node.
+- **Versioned facts for free.** SelfGraph keeps every version of a relation and retires the old one when a fact is
+  superseded (`is_current`, `revision`). That is exactly the signal a learned route needs to know it is stale. I
+  didn't write any versioning code; I subscribed my route provenance to SelfGraph's.
+- **One query per route.** HydraDB runs a multi-hop, typed Cypher pattern (4 hops, including a reversed edge) as a
+  single query, using its relationship-property indexes. That turns a learned route into one graph call instead of
+  five LLM-driven hops. A single route query took about 7 ms on a fresh store, and the load test's median at concurrency 1 was 42 ms.
+- **Retrieval without a vector store.** SelfGraph's keyword-seeded retrieval found the start entity for each
+  question, so the whole system (graph agent, learning and routes) runs with no embeddings at all. The vector
+  store exists only as the baseline.
+- **Typed ontology.** SelfGraph's schema (entity types, relation endpoints, `max_count`) made meta-paths
+  meaningful, and made "supersede the old on-call person" a single insert.
+
 ## The technical problems, and how we solved them
 
 **1. The shortest explanation is often the wrong one.** "Who is on call for the owning team?" has an equally short
