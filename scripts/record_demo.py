@@ -34,7 +34,7 @@ async def main() -> None:
         await page.wait_for_selector("#kpis .kpi", timeout=60000)
         await page.wait_for_timeout(2500)
         await page.screenshot(path=str(IMG / "results.png"))
-        await page.evaluate("document.querySelector('#c1').scrollIntoView({behavior:'smooth',block:'center'})")
+        await page.evaluate("document.querySelector('#c0').scrollIntoView({behavior:'smooth',block:'start'})")
         await page.wait_for_timeout(2500)
         await page.screenshot(path=str(IMG / "curve.png"))
 

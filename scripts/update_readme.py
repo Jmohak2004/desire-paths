@@ -27,9 +27,15 @@ def main() -> None:
         f"task than B** (the same agent without routes), at accuracy {c['accuracy']['mean']:.2f} vs "
         f"{b['accuracy']['mean']:.2f}.",
     ]
+    if "acc_at_1" in c:
+        c0 = sm["C_desire"]["0"]["acc_at_1"]["mean"]
+        lines.insert(3, f"- **Accuracy rises with use:** held-out questions answered correctly within a budget of 1 LLM call "
+                        f"go from **{c0:.2f} to {c['acc_at_1']['mean']:.2f} ± {c['acc_at_1']['std']:.2f}** over {rounds} "
+                        f"rounds. The graph agent without routes (B) scores {b['acc_at_1']['mean']:.2f} under the same budget, "
+                        f"vector RAG (A) {a['acc_at_1']['mean']:.2f}.")
     if a:
         lines.append(f"- Iterative vector RAG (A) reaches {a['accuracy']['mean']:.2f} accuracy on the same questions.")
-    lines += ["", "![learning curve](docs/img/curve.png)", ""]
+    lines += ["", "![accuracy within one LLM call](docs/img/curve.png)", ""]
     md = (R / "results.md").read_text()
     md = md[md.index("## Held-out, after"):].replace("## ", "#### ")
     lines += [md.strip(), ""]
@@ -57,6 +63,9 @@ def main() -> None:
     sav = R / "savings.md"
     if sav.exists():
         lines += ["### Savings calculator (`results/savings.md`)", "", sav.read_text().split("\n", 2)[-1].strip(), ""]
+    lt = R / "loadtest.md"
+    if lt.exists():
+        lines += ["### Under load (`results/loadtest.md`)", "", lt.read_text().split("\n", 2)[-1].strip(), ""]
     gate = R / "gate_hydradb.json"
     if gate.exists():
         g = json.loads(gate.read_text())

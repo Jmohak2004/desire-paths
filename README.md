@@ -4,6 +4,10 @@
 
 **Agent cost per task falls as your graph is used.**
 
+**Live demo:** https://denver-spokesman-music-wall.trycloudflare.com (served from a self-hosted HydraDB node) ·
+HydraDB hackathon, **Track 1: the self-improving graph**. Learned path compression: the graph learns, from its own
+correct answers, which typed paths to compile into single queries.
+
 Desire Paths is a context layer on [HydraDB](https://github.com/hydra-db/hydradb) and
 [SelfGraph](https://github.com/hydra-db/selfgraph). It watches how agents walk the graph to answer multi-hop
 questions and learns **route templates** from the walks that worked. A template is a typed path, such as
@@ -188,10 +192,11 @@ calls.
 
 ## Honest notes
 
-- **Model.** The plan was `google/gemma-4-31b-it` on NVIDIA's API. During the build window it took 112–200 s per
-  call or timed out (evidence: [`results/model_probe.md`](results/model_probe.md)). All three agents therefore use
-  `poolside/laguna-xs-2.1`, the fastest model that solved the graph-agent probe, at temperature 0.
-  `DP_MODEL=google/gemma-4-31b-it make eval` switches back.
+- **Model.** Every agent uses Gemma 4 (`gemma-4-26b-a4b-it`) through Google's Gemini API, at temperature 0.
+  Gemma 4 on NVIDIA's API took 112–200 s per call or timed out, so the first complete run used
+  `poolside/laguna-xs-2.1`. That run is archived in [`results/archive/laguna-xs-2.1/`](results/archive/laguna-xs-2.1)
+  and reached the same conclusions. `gemma-4-31b-it` took about 32 s per call on the Gemini API, too slow for the
+  full eval (evidence: [`results/model_probe.md`](results/model_probe.md)). Switch with `DP_MODEL=...`.
 - **Embeddings** for baseline A: `nvidia/nemotron-3-embed-1b`, the only NVIDIA embedder that served this key.
   We tried two stronger A prompts; neither beat the shipped one (see `results/model_probe.md`).
 - **A and B have no learning state**, so their numbers cannot change between rounds. They are measured once per
@@ -212,9 +217,11 @@ calls.
   the first run and 0.67 on the rerun; accuracy was unchanged.
 - **Latency** = measured LLM time per call (NVIDIA free tier, so queueing is included) plus graph time measured on
   every run. Held-out questions are scored one at a time.
-- **HydraDB store growth.** Every run loads the graph into a fresh namespace, and SelfGraph applies the namespace
-  as a filter. After many runs the single dev node slowed down a lot: the test suite took 19 minutes, with 2 errors.
-  On a fresh store it passes in 22 s. `make demo` starts from a fresh store, and `make hydradb-reset` wipes it.
+- **HydraDB dev-store slowdown (cause not identified).** After a night of runs (many namespaces plus repeated
+  writes) the single local node slowed down a lot: the test suite took 19 minutes, with 2 errors. On a fresh store
+  it passes in 22 s. A controlled test, loading the same graph into 16 namespaces on a fresh node, showed flat load
+  times (15–19 s each), so namespace count alone doesn't explain it. `make demo` starts from a fresh store, and
+  `make hydradb-reset` wipes it.
 - **HydraDB** here is a single local v0.4.0 node built from source, not HydraDB Cloud. The same code points at any
   Bolt endpoint via `HYDRADB_URI`.
 

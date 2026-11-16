@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 export PYTHONPATH := .
 
-.PHONY: setup test gate eval eval-quick heal dashboard hydradb hydradb-reset record demo
+.PHONY: setup test gate eval eval-quick heal dashboard hydradb hydradb-reset record demo loadtest
 
 setup:
 	python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt
@@ -39,3 +39,6 @@ demo:            ## start HydraDB node (if needed) + dashboard -> http://127.0.0
 hydradb-reset:   ## stop the local node and wipe its (synthetic, regenerable) store
 	-pkill -f target/release/graph-node
 	rm -rf .hydradb/store .hydradb/cache
+
+loadtest:        ## learned route (1 query) vs hop-by-hop walk on HydraDB under concurrency -> results/loadtest.md
+	$(PY) -m eval.loadtest --seed 0

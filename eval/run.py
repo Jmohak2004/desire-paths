@@ -177,9 +177,9 @@ async def main() -> None:
     seeds = [int(s) for s in args.seeds.split(",")]
     RESULTS.mkdir(exist_ok=True)
     llm, emb = LLM(), Embedder()
-    rows: list[dict] = []
-    for s in seeds:
-        rows += await run_seed(s, args, llm, emb)
+    # Seeds run concurrently (separate namespaces and store clients); each still scores held-out questions one at a
+    # time, so per-question latency is not inflated by other questions of the same seed.
+    rows: list[dict] = [r for part in await asyncio.gather(*[run_seed(s, args, llm, emb) for s in seeds]) for r in part]
     with open(RESULTS / "per_question.jsonl", "w") as f:
         for r in rows:
             f.write(json.dumps(r) + "\n")

@@ -31,3 +31,17 @@ sure the baseline is not a strawman:
 | v3: cite the chain of facts first, then answer or search, 4 rounds | 2/12 |
 
 Neither variant helped, so the eval keeps v1.
+
+## Switch to the Gemini API (2026-11-16, ~07:45 IST)
+
+The same graph-agent probe (6 held-out questions, seed 0, temperature 0), through the Gemini API's OpenAI-compatible
+endpoint:
+
+| model | correct | LLM calls / q | latency / q |
+|---|---|---|---|
+| gemma-4-31b-it | 6/6 | 4.8 | 177.9 s (median call ~32 s) |
+| gemma-4-26b-a4b-it | 6/6 | 4.8 | 18.4 s |
+| gemini-3.5-flash-lite | 6/6 | 6.0 | 7.1 s |
+
+Decision: the final measured run uses Gemma 4 (`gemma-4-26b-a4b-it`), the requested model family, for all agents.
+Gemma 4 sometimes prefixes replies with a `<thought>` block, which `desirepaths/llm.py` strips before parsing.
