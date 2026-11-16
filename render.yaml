@@ -1,0 +1,13 @@
+# One-click deploy on Render (free web service): https://render.com/deploy?repo=https://github.com/Jmohak2004/desire-paths
+services:
+  - type: web
+    name: desire-paths
+    runtime: docker
+    plan: free
+    dockerfilePath: ./deploy/hosted.Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/status
+    autoDeploy: true
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
