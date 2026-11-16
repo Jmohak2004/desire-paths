@@ -1,1 +1,1 @@
-{"model":"gemma-4-26b-a4b-it","backend":"hydradb","hydradb_configured":true,"nodes":2580,"edges":5080,"graph_load_s":14.5,"graph_calls_total":12,"active_routes":6}
+{"model":"gemma-4-26b-a4b-it","backend":"hydradb","hydradb_configured":true,"nodes":2580,"edges":5080,"graph_load_s":14.5,"graph_calls_total":18,"active_routes":6}
