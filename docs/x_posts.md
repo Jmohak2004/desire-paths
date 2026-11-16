@@ -20,7 +20,7 @@ the article or blog link plus this tweet's link in the Bounty #2 form.
 >
 > Self-hosted HydraDB + SelfGraph. 89% fewer LLM calls at equal accuracy; routes heal when facts change.
 >
-> What broke and how I fixed it 👇
+> What broke, and the fixes 👇
 > https://jmohak2004.github.io/desire-paths/blog/
 
 Attach: `docs/img/curve.png` (the rising accuracy curve).
