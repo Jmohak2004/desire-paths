@@ -63,6 +63,11 @@ time plus measured graph time.
 measured the alternatives on the real agent task, ran the full eval on the best working model, then switched to
 Gemma 4 on the Gemini API once a key was available and re-ran everything. Both runs are in the repo.
 
+**8. A thinking model ate its own answer.** Gemma 4 writes a `<thought>` block before it replies. Our router call
+allowed 120 output tokens, so the thought used them all and the reply came back empty: every new phrasing fell back
+to the expensive walk. We found it by counting empty replies in the request cache (165 of them), confirmed it with
+`finish_reason=length`, and gave every call from every agent the same 1,500-token cap before re-running.
+
 ## Why it needs a graph
 
 The vector-RAG baseline, iterative and with the same LLM, reaches only {{A_ACC}} accuracy: a multi-hop answer's
