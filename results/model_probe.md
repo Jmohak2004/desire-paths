@@ -1,6 +1,6 @@
 # Model probe (2026-11-16, ~02:15 IST, NVIDIA integrate API, this account's key)
 
-Requested model: `google/gemma-4-31b-it`.
+Requested model: `google/gemma-4-31b-it`. Re-checked 07:19 IST: still timed out at 60 s.
 
 1. Single `{"ok": true}` call: 118.9 s. Then 6 calls: one 112 s, five timed out at 200 s. Later probe: timed out at 60 s.
 2. Every other chat model on the key, one call each, 45 s timeout. Most older ids return 404 or 410 (retired).
