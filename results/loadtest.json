@@ -1,0 +1,100 @@
+{
+ "backend": "hydradb",
+ "seed": 0,
+ "levels": {
+  "route": [
+   {
+    "concurrency": 1,
+    "requests": 360,
+    "qps": 10.3,
+    "p50_ms": 41.7,
+    "p95_ms": 357.6,
+    "p99_ms": 447.1,
+    "mean_ms": 97.0,
+    "errors": 0,
+    "correct": 360
+   },
+   {
+    "concurrency": 8,
+    "requests": 360,
+    "qps": 24.5,
+    "p50_ms": 150.1,
+    "p95_ms": 1229.7,
+    "p99_ms": 1453.8,
+    "mean_ms": 322.2,
+    "errors": 0,
+    "correct": 360
+   },
+   {
+    "concurrency": 32,
+    "requests": 360,
+    "qps": 24.0,
+    "p50_ms": 570.1,
+    "p95_ms": 5023.3,
+    "p99_ms": 5119.9,
+    "mean_ms": 1242.8,
+    "errors": 0,
+    "correct": 360
+   },
+   {
+    "concurrency": 64,
+    "requests": 360,
+    "qps": 25.7,
+    "p50_ms": 1115.4,
+    "p95_ms": 8822.6,
+    "p99_ms": 8961.2,
+    "mean_ms": 2150.6,
+    "errors": 0,
+    "correct": 360
+   }
+  ],
+  "walk": [
+   {
+    "concurrency": 1,
+    "requests": 360,
+    "qps": 4.7,
+    "p50_ms": 223.8,
+    "p95_ms": 299.9,
+    "p99_ms": 303.1,
+    "mean_ms": 212.3,
+    "errors": 0,
+    "correct": 360
+   },
+   {
+    "concurrency": 8,
+    "requests": 360,
+    "qps": 15.1,
+    "p50_ms": 527.4,
+    "p95_ms": 782.8,
+    "p99_ms": 843.6,
+    "mean_ms": 527.1,
+    "errors": 0,
+    "correct": 360
+   },
+   {
+    "concurrency": 32,
+    "requests": 360,
+    "qps": 18.5,
+    "p50_ms": 1786.0,
+    "p95_ms": 2475.9,
+    "p99_ms": 2526.5,
+    "mean_ms": 1690.8,
+    "errors": 0,
+    "correct": 360
+   },
+   {
+    "concurrency": 64,
+    "requests": 360,
+    "qps": 18.7,
+    "p50_ms": 3390.9,
+    "p95_ms": 4885.8,
+    "p99_ms": 5279.4,
+    "mean_ms": 3285.7,
+    "errors": 0,
+    "correct": 360
+   }
+  ]
+ },
+ "questions": 36,
+ "hydradb": true
+}

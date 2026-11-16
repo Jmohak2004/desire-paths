@@ -65,7 +65,11 @@ def main() -> None:
         lines += ["### Savings calculator (`results/savings.md`)", "", sav.read_text().split("\n", 2)[-1].strip(), ""]
     lt = R / "loadtest.md"
     if lt.exists():
-        lines += ["### Under load (`results/loadtest.md`)", "", lt.read_text().split("\n", 2)[-1].strip(), ""]
+        lines += ["### Under load (`results/loadtest.md`)", "", lt.read_text().split("\n", 2)[-1].strip(), "",
+                  "Graph work only: the walk here leaves out its ~5 LLM calls per question, which dominate real latency. "
+                  "One learned-route query per question gives higher throughput and a lower median than walking hop "
+                  "by hop, but a worse p95 tail at high concurrency on this single local node. All answers were correct "
+                  "at every level.", ""]
     gate = R / "gate_hydradb.json"
     if gate.exists():
         g = json.loads(gate.read_text())
