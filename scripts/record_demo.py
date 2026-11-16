@@ -56,6 +56,12 @@ async def main() -> None:
         await page.wait_for_timeout(800)
         await ask("#askC", "ask_c_router.png")  # a phrasing never seen in training -> router (1 LLM call) -> route
 
+        await page.locator(".showq").last.scroll_into_view_if_needed()
+        await page.wait_for_timeout(800)
+        await page.locator(".showq").last.click()   # the learned 4-hop route as ONE Cypher query, run live
+        await page.wait_for_selector(".qbox pre", timeout=30000)
+        await page.locator(".qbox pre").last.scroll_into_view_if_needed()
+        await page.wait_for_timeout(2500)
         await page.evaluate("document.querySelector('#mut').scrollIntoView({behavior:'smooth',block:'start'})")
         await page.wait_for_timeout(1200)
         await page.click("#mut")

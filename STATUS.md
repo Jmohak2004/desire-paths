@@ -1,6 +1,6 @@
 # STATUS
 
-_Updated: 2026-11-16 ~05:00 IST_
+_Updated: 2026-11-16 ~07:35 IST_
 
 ## Works (verified)
 - **HydraDB v0.4.0**, built from source and running locally (`make hydradb`; Bolt 7687; telemetry off).
@@ -17,6 +17,13 @@ _Updated: 2026-11-16 ~05:00 IST_
   rebuilds as v2 and is back to 0 LLM calls. The stale-route agent returns the superseded person.
 - Dashboard (`make demo`): measured curves and tables, live ask (B vs C), live fact change, retire, rebuild,
   route library, savings calculator. Backup video: `docs/demo.mp4`.
+
+- Packaging: `pip install -e .` installs `desirepaths` as a SelfGraph add-on; register any schema with
+  `set_relations(...)`.
+- CI (GitHub Actions, Python 3.11, no secrets): installs the package, runs the tests on embedded Kuzu, and checks
+  that the README and savings table regenerate exactly from the committed results. Green.
+- Verified from a fresh clone with no `.env`: 9 tests pass; regenerating the README from results gives no diff.
+- Dashboard route view: each learned route's compiled one-query Cypher and a live run.
 
 ## Known limits (also in README "Honest notes")
 - Model is `poolside/laguna-xs-2.1`, because Gemma 4 timed out on NVIDIA's API (`results/model_probe.md`).
