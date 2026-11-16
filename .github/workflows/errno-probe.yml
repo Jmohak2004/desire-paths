@@ -1,0 +1,33 @@
+name: errno-probe
+on:
+  push:
+    branches: [probe/errno]
+jobs:
+  probe:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "selfgraph @ git+https://github.com/hydra-db/selfgraph@main"
+      - shell: python
+        run: |
+          import errno, socket, sys
+          from selfgraph.errors import error_reason
+          print("platform:", sys.platform)
+          print("errno.ECONNREFUSED =", errno.ECONNREFUSED, "-> errorcode name:", errno.errorcode.get(errno.ECONNREFUSED))
+          s = socket.socket()
+          try:
+              s.connect(("127.0.0.1", 9))
+          except OSError as e:
+              print("real refusal:", type(e).__name__, "errno", e.errno, "->", errno.errorcode.get(e.errno))
+              try:
+                  try:
+                      raise e
+                  except OSError as inner:
+                      raise RuntimeError("Cannot connect to API: ") from inner
+              except RuntimeError as x:
+                  print("error_reason ->", repr(error_reason(x)))
