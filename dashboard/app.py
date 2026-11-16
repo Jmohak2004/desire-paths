@@ -13,7 +13,7 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
@@ -58,6 +58,22 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Desire Paths", lifespan=lifespan)
+
+# Public-demo guard rails: endpoints that spend LLM calls or change the graph are rate limited (global and per client).
+LIMITS = {"ask": (30, 6), "mutate": (6, 2), "revalidate": (6, 2)}  # per minute: (global, per client)
+_HITS: dict[str, list[float]] = {}
+
+
+def limit(request: Request, name: str) -> None:
+    now = time.time()
+    client = (request.headers.get("cf-connecting-ip") or request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+              or (request.client.host if request.client else "?"))
+    glob, per = LIMITS[name]
+    for key, cap in ((name, glob), (f"{name}:{client}", per)):
+        hits = [t for t in _HITS.get(key, []) if now - t < 60]
+        if len(hits) >= cap:
+            raise HTTPException(429, f"rate limit: {cap} {name} requests per minute; try again shortly")
+        _HITS[key] = hits + [now]
 
 
 def _read(name: str):
@@ -121,9 +137,10 @@ class Ask(BaseModel):
 
 
 @app.post("/api/ask")
-async def ask(req: Ask):
-    if not req.question.strip():
-        raise HTTPException(400, "empty question")
+async def ask(req: Ask, request: Request):
+    if not req.question.strip() or len(req.question) > 300:
+        raise HTTPException(400, "question must be 1-300 characters")
+    limit(request, "ask")
     b = STATE["backend"]
     gold = STATE["extra_gold"].get(req.question) or next(
         (q.gold_names for q in STATE["test"] + STATE["train"] if q.text == req.question), None)
@@ -152,8 +169,9 @@ async def ask(req: Ask):
 
 
 @app.post("/api/mutate")
-async def mutate():
+async def mutate(request: Request):
     """Change ONE fact a learned route depends on: a team's on-call person. Retires dependent templates."""
+    limit(request, "mutate")
     async with STATE["lock"]:
         g, b, lib = STATE["g"], STATE["backend"], STATE["lib"]
         hops = [tuple(h) for h in QTEMPLATES["oncall_for_person_project"]["hops"]]
@@ -191,7 +209,8 @@ async def mutate():
 
 
 @app.post("/api/revalidate")
-async def revalidate():
+async def revalidate(request: Request):
+    limit(request, "revalidate")
     async with STATE["lock"]:
         rebuilt = await STATE["lib"].revalidate(STATE["backend"])
         return {"rebuilt": [{"id": t.id, "version": t.version, "support": len(t.support)} for t in rebuilt]}

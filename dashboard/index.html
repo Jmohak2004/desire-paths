@@ -40,6 +40,7 @@ button{padding:9px 14px;border-radius:8px;border:1px solid var(--line);backgroun
 <main>
   <section class="card"><h2>Held-out results (measured)</h2><div class="kpis" id="kpis"></div><div class="tbl" style="margin-top:14px"><table id="tbl"></table></div><p class="muted" id="note"></p></section>
 
+  <section class="card"><h2>Accuracy rises with use: held-out questions answered correctly within 1 LLM call</h2><div class="chartbox"><canvas id="c0"></canvas></div><p class="muted" style="font-size:13px">A hard budget of one LLM call per question. The graph agent (B) needs about 5 calls per question, so it scores 0 here every round. Desire Paths (C) learns routes from its own successful walks; each learned route answers a new entity's question in one graph query.</p></section>
   <section class="card half"><h2>Learning curve: LLM calls per question</h2><div class="chartbox"><canvas id="c1"></canvas></div></section>
   <section class="card half"><h2>Learning curve: input tokens per question</h2><div class="chartbox"><canvas id="c2"></canvas></div></section>
 
@@ -90,7 +91,7 @@ function renderResults(S){
   ['A_vector','B_graph','C_desire'].forEach(a=>{const c=fin(a);if(c)PT[a]={in:c.input_tokens.mean,out:c.output_tokens.mean,calls:c.llm_calls.mean,acc:c.accuracy.mean}});
   const b=fin('B_graph'),c=fin('C_desire'),a=fin('A_vector');
   $('#kpis').innerHTML=[
-    ['C accuracy (held-out)',fmt(c.accuracy.mean)+' ± '+fmt(c.accuracy.std)],
+    ['C accuracy within 1 LLM call, round 0 → '+R,(c.acc_at_1?fmt(sm.C_desire[0].acc_at_1.mean)+' → '+fmt(c.acc_at_1.mean):fmt(c.accuracy.mean))],
     ['LLM calls / task, B → C',fmt(b.llm_calls.mean,1)+' → '+fmt(c.llm_calls.mean,1)],
     ['Input tokens / task, B → C',Math.round(b.input_tokens.mean)+' → '+Math.round(c.input_tokens.mean)],
     ['Token cut vs B',Math.round(100*(1-(c.input_tokens.mean+c.output_tokens.mean)/(b.input_tokens.mean+b.output_tokens.mean)))+'%']
@@ -101,6 +102,8 @@ function renderResults(S){
   const rounds=[...Array(R+1).keys()];
   const ds=(k)=>['A_vector','B_graph','C_desire'].filter(x=>sm[x]).map(x=>({label:NAMES[x]+(x==='C_desire'?'':' (no learning state)'),data:rounds.map(r=>sm[x][r][k].mean),borderColor:COL[x]||'#999',backgroundColor:COL[x]||'#999',borderDash:x==='C_desire'?[]:[6,4],tension:.2,pointRadius:x==='C_desire'?4:0,borderWidth:x==='C_desire'?3:2}));
   const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{title:{display:true,text:'learning round (train questions seen)'}},y:{beginAtZero:true}}};
+  const has1=sm.C_desire&&sm.C_desire[0]&&sm.C_desire[0].acc_at_1;
+  if(has1){const o2=JSON.parse(JSON.stringify(opts));o2.scales.y.max=1;new Chart($('#c0'),{type:'line',data:{labels:rounds,datasets:ds('acc_at_1')},options:o2})}
   new Chart($('#c1'),{type:'line',data:{labels:rounds,datasets:ds('llm_calls')},options:opts});
   new Chart($('#c2'),{type:'line',data:{labels:rounds,datasets:ds('input_tokens')},options:opts});
 }

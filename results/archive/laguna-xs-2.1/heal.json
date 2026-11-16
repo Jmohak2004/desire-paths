@@ -1,0 +1,155 @@
+{
+ "model": "poolside/laguna-xs-2.1",
+ "seed": 0,
+ "backend": "hydradb",
+ "timeline": [
+  {
+   "t": 229.44,
+   "event": "learned",
+   "active": [
+    [
+     "Ra184",
+     "(Incident)-[AFFECTED]->()-[PART_OF]->()-[OWNED_BY]->()",
+     1
+    ],
+    [
+     "Rc346",
+     "(Person)-[WORKS_ON]->()-[OWNED_BY]->()-[ON_CALL]->()",
+     1
+    ],
+    [
+     "Rcaa6",
+     "(Service)-[PART_OF]->()-[OWNED_BY]->()-[ON_CALL]->()",
+     1
+    ],
+    [
+     "Rcc27",
+     "(Doc)-[DOCUMENTS]->()-[PART_OF]->()",
+     1
+    ],
+    [
+     "Re79a",
+     "(Project)-[OWNED_BY]->()-[MANAGED_BY]->()",
+     1
+    ]
+   ]
+  },
+  {
+   "t": 229.44,
+   "event": "scenario",
+   "template": "Rc346",
+   "version": 1,
+   "team": "Insights Platform",
+   "relation": "relation:8645cef124c1b85f346c0675",
+   "question": "Who is currently on call for the team that owns the project Arjun Mehta works on?",
+   "on_call_before": "Chloe Ilic",
+   "on_call_after": "Chloe Jansen",
+   "dependents": [
+    "Rc346"
+   ]
+  },
+  {
+   "t": 231.91,
+   "event": "ask:before_change",
+   "gold": "Chloe Ilic",
+   "desire": {
+    "answer": [
+     "Chloe Ilic"
+    ],
+    "correct": true,
+    "route": "Rc346",
+    "via": "shape",
+    "fallback": false,
+    "llm_calls": 0,
+    "graph_calls": 2
+   },
+   "stale": {
+    "answer": [
+     "Chloe Ilic"
+    ],
+    "correct": true,
+    "llm_calls": 0,
+    "via": "route Rc346 (shape), pinned"
+   }
+  },
+  {
+   "t": 231.94,
+   "event": "fact_changed",
+   "retired": "relation:8645cef124c1b85f346c0675",
+   "new": "relation:4aa8a1fe737a3c16cdd0ffe7",
+   "retired_is_current": false,
+   "fact": "Insights Platform ON_CALL Chloe Ilic -> Chloe Jansen"
+  },
+  {
+   "t": 231.94,
+   "event": "templates_retired",
+   "ids": [
+    [
+     "Rc346",
+     "(Person)-[WORKS_ON]->()-[OWNED_BY]->()-[ON_CALL]->()",
+     1
+    ]
+   ]
+  },
+  {
+   "t": 235.08,
+   "event": "ask:after_change_template_retired",
+   "gold": "Chloe Jansen",
+   "desire": {
+    "answer": [
+     "Chloe Jansen"
+    ],
+    "correct": true,
+    "route": null,
+    "via": "walk",
+    "fallback": true,
+    "llm_calls": 6,
+    "graph_calls": 5
+   },
+   "stale": {
+    "answer": [
+     "Chloe Ilic"
+    ],
+    "correct": false,
+    "llm_calls": 0,
+    "via": "pinned relation ids"
+   }
+  },
+  {
+   "t": 236.12,
+   "event": "templates_rebuilt",
+   "ids": [
+    [
+     "Rc346",
+     2,
+     6
+    ]
+   ],
+   "still_depends_on_retired": []
+  },
+  {
+   "t": 237.32,
+   "event": "ask:after_rebuild",
+   "gold": "Chloe Jansen",
+   "desire": {
+    "answer": [
+     "Chloe Jansen"
+    ],
+    "correct": true,
+    "route": "Rc346",
+    "via": "shape",
+    "fallback": false,
+    "llm_calls": 0,
+    "graph_calls": 2
+   },
+   "stale": {
+    "answer": [
+     "Chloe Ilic"
+    ],
+    "correct": false,
+    "llm_calls": 0,
+    "via": "pinned relation ids"
+   }
+  }
+ ]
+}

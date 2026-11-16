@@ -18,14 +18,6 @@ from pathlib import Path
 
 import numpy as np
 
-BASE_URL = os.environ.get("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
-# Requested model was google/gemma-4-31b-it; on 2026-11-16 it timed out (>45-200 s per call) on NVIDIA's API, so the
-# measured runs pin the fastest model that solved the graph-agent probe (see results/model_probe.md).
-MODEL = os.environ.get("DP_MODEL", "poolside/laguna-xs-2.1")
-EMBED_MODEL = os.environ.get("DP_EMBED_MODEL", "nvidia/nemotron-3-embed-1b")  # the only NVIDIA embedder serving this key
-TEMPERATURE = 0.0
-MAX_TOKENS = 400
-ATTEMPTS = 20  # rate limits (429) and timeouts on the shared free tier: back off up to ~15 min
 ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = ROOT / "results" / "cache"
 
@@ -41,6 +33,18 @@ def load_dotenv() -> None:
 
 
 load_dotenv()
+
+# LLM provider: any OpenAI-compatible endpoint. Default: Google's Gemini API serving Gemma 4.
+# (Gemma 4 was also tried on NVIDIA's API first: it timed out there, see results/model_probe.md.)
+LLM_BASE_URL = os.environ.get("DP_LLM_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/")
+LLM_KEY_ENV = os.environ.get("DP_LLM_KEY_ENV", "GEMINI_API_KEY")
+MODEL = os.environ.get("DP_MODEL", "gemma-4-26b-a4b-it")  # Gemma 4 via the Gemini API (31B: ~32 s/call there)
+# Embeddings for the vector baseline stay on NVIDIA (same model throughout every run).
+BASE_URL = os.environ.get("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
+EMBED_MODEL = os.environ.get("DP_EMBED_MODEL", "nvidia/nemotron-3-embed-1b")
+TEMPERATURE = 0.0
+MAX_TOKENS = 400
+ATTEMPTS = 20  # rate limits (429) and timeouts on free tiers: back off up to ~15 min
 
 
 @dataclass
@@ -61,8 +65,8 @@ class LLM:
     def __init__(self, concurrency: int = 6):
         from openai import AsyncOpenAI
 
-        key = os.environ.get("NVIDIA_API_KEY")
-        self.client = AsyncOpenAI(base_url=BASE_URL, api_key=key or "missing", max_retries=0, timeout=120)
+        key = os.environ.get(LLM_KEY_ENV)
+        self.client = AsyncOpenAI(base_url=LLM_BASE_URL, api_key=key or "missing", max_retries=0, timeout=120)
         self.has_key = bool(key)
         self.sem = asyncio.Semaphore(concurrency)
         self.use_cache = os.environ.get("DP_CACHE", "on") != "off"
@@ -84,7 +88,7 @@ class LLM:
         hit = self.cache.get(key) if self.use_cache else None
         if hit is None:
             if not self.has_key:
-                raise RuntimeError("NVIDIA_API_KEY is not set (put it in .env or export it)")
+                raise RuntimeError(f"{LLM_KEY_ENV} is not set (put it in .env or export it)")
             hit = await self._live(req, key)
         else:
             meter.cached += 1
@@ -103,7 +107,7 @@ class LLM:
                     t0 = time.perf_counter()
                     r = await self.client.chat.completions.create(**req)
                     lat = time.perf_counter() - t0
-                text = r.choices[0].message.content or ""
+                text = strip_thoughts(r.choices[0].message.content or "")
                 u = r.usage
                 rec = {"key": key, "text": text, "in": u.prompt_tokens if u else 0, "out": u.completion_tokens if u else 0,
                        "latency": round(lat, 3), "model": req["model"], "ts": time.time()}
@@ -170,6 +174,13 @@ class Embedder:
 
     def flush(self) -> None:
         self.qpath.write_text(json.dumps(self.qcache))
+
+
+def strip_thoughts(text: str) -> str:
+    """Gemma 4 on the Gemini API may prefix replies with a <thought>...</thought> block; keep only the answer."""
+    import re
+
+    return re.sub(r"<thought>.*?(</thought>|$)", "", text, flags=re.S).strip() if "<thought>" in text else text
 
 
 def parse_json(text: str) -> dict:

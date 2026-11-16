@@ -28,6 +28,9 @@ from desirepaths.routes import RouteLibrary
 
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 METRICS = ["accuracy", "llm_calls", "input_tokens", "output_tokens", "latency_s", "graph_calls"]
+# Accuracy under a hard LLM-call budget: correct AND answered within k LLM calls. The agents are deterministic
+# (temperature 0, cached), so this equals running them with a cap of k calls: a trajectory that needs more fails.
+BUDGETS = [1, 2]
 
 
 def record(agent, rnd, q, res) -> dict:
@@ -43,6 +46,10 @@ def agg(rows: list[dict]) -> dict:
         out[k] = sum(r[k] for r in rows) / n
     out["route_rate"] = sum(1 for r in rows if r.get("route")) / n
     out["errors"] = sum(1 for r in rows if r.get("error"))
+    for k in BUDGETS:
+        out[f"acc_at_{k}"] = sum(1 for r in rows if r["correct"] and r["llm_calls"] <= k) / n
+    ok = sum(r["correct"] for r in rows)
+    out["tokens_per_correct"] = sum(r["input_tokens"] + r["output_tokens"] for r in rows) / ok if ok else 0.0
     return out
 
 
@@ -114,7 +121,7 @@ def summarise(rows: list[dict], seeds: list[int], rounds: int) -> dict:
             if not per_seed:
                 continue
             cell = {"measured_round": src_rnd, "seeds": len(per_seed)}
-            for k in METRICS + ["route_rate"]:
+            for k in METRICS + ["route_rate", "tokens_per_correct"] + [f"acc_at_{b}" for b in BUDGETS]:
                 vals = [p[k] for p in per_seed]
                 cell[k] = {"mean": st.mean(vals), "std": st.pstdev(vals) if len(vals) > 1 else 0.0}
             cell["errors"] = sum(p["errors"] for p in per_seed)
@@ -133,6 +140,29 @@ def table(summary: dict, rnd: int) -> str:
         lines.append(f"| {a} | {f('accuracy')} | {f('llm_calls')} | {f('input_tokens', 0)} | {f('output_tokens', 0)} | "
                      f"{f('latency_s')} | {f('graph_calls', 1)} |")
     return hdr + "\n".join(lines) + "\n"
+
+
+def report(summary: dict, meta: dict, rounds: int) -> list[str]:
+    seeds, MODEL_, EMBED_ = meta['seeds'], meta['model'], meta['embed_model']
+    md = [f"# Results\n\nModel `{MODEL_}` (temperature 0), embeddings `{EMBED_}`, backend: {meta['backend']}.",
+          f"Seeds {seeds}; mean ± std across seeds of per-question averages on HELD-OUT questions.\n",
+          f"## Held-out, after {rounds} learning rounds\n", table(summary, rounds),
+          "\n## Held-out, round 0 (before any learning)\n", table(summary, 0),
+          "\n## Learning curve (held-out, per round)\n",
+          "Accuracy within a budget of 1 LLM call per question (a hard cap: an answer that needs more calls counts as "
+          "wrong). A and B hold no learning state, so their values are the same every round.\n",
+          "| round | C: accuracy @ 1 call | C: accuracy @ 2 calls | C: accuracy (no cap) | C: LLM calls / q | "
+          "C: tokens / correct answer | C: routed share | B: accuracy @ 1 call | A: accuracy @ 1 call |",
+          "|---|---|---|---|---|---|---|---|---|"]
+    for rnd, c in summary.get("C_desire", {}).items():
+        b1 = summary.get("B_graph", {}).get(rnd, {}).get("acc_at_1", {"mean": float("nan")})["mean"]
+        a1 = summary.get("A_vector", {}).get(rnd, {}).get("acc_at_1", {"mean": float("nan")})["mean"]
+        md.append(f"| {rnd} | **{c['acc_at_1']['mean']:.2f} ± {c['acc_at_1']['std']:.2f}** | {c['acc_at_2']['mean']:.2f} | "
+                  f"{c['accuracy']['mean']:.2f} ± {c['accuracy']['std']:.2f} | {c['llm_calls']['mean']:.2f} ± "
+                  f"{c['llm_calls']['std']:.2f} | {c['tokens_per_correct']['mean']:.0f} | {c['route_rate']['mean']:.2f} | "
+                  f"{b1:.2f} | {a1:.2f} |")
+    md.append("\n" + meta["note"])
+    return md
 
 
 async def main() -> None:
@@ -162,16 +192,7 @@ async def main() -> None:
                 min_support=args.min_support, generated_at=time.strftime("%Y-%m-%d %H:%M:%S"),
                 note="A and B hold no learning state: measured once per seed (round 0) and drawn flat across rounds.")
     (RESULTS / "summary.json").write_text(json.dumps({"meta": meta, "summary": summary}, indent=1))
-    md = [f"# Results\n\nModel `{MODEL}` (temperature 0), embeddings `{EMBED_MODEL}`, backend: {meta['backend']}.",
-          f"Seeds {seeds}; mean ± std across seeds of per-question averages on HELD-OUT questions.\n",
-          f"## Held-out, after {args.rounds} learning rounds\n", table(summary, args.rounds),
-          "\n## Held-out, round 0 (before any learning)\n", table(summary, 0),
-          "\n## C learning curve (held-out, per round)\n",
-          "| round | accuracy | LLM calls / q | input tok / q | routed share |\n|---|---|---|---|---|"]
-    for rnd, c in summary.get("C_desire", {}).items():
-        md.append(f"| {rnd} | {c['accuracy']['mean']:.2f} ± {c['accuracy']['std']:.2f} | {c['llm_calls']['mean']:.2f} ± "
-                  f"{c['llm_calls']['std']:.2f} | {c['input_tokens']['mean']:.0f} | {c['route_rate']['mean']:.2f} |")
-    md.append("\n" + meta["note"])
+    md = report(summary, meta, args.rounds)
     (RESULTS / "results.md").write_text("\n".join(md) + "\n")
     print("\n".join(md))
 

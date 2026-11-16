@@ -18,6 +18,8 @@ from typing import Any
 
 from selfgraph import KuzuStore, SelfGraph
 
+from . import env as _env  # noqa: F401  (loads .env: HYDRADB_URI / HYDRADB_TOKEN)
+
 
 @dataclass(frozen=True)
 class Dialect:
