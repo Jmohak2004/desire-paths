@@ -275,7 +275,7 @@ class DesirePaths:
         # 2. unseen phrasing: one LLM call picks a route and names the start entity
         out = parse_json(await self.llm.chat(
             [{"role": "user", "content": ROUTER.format(routes=self.route_menu(), question=question)}],
-            meter, max_tokens=120, tag="C.router"))
+            meter, tag="C.router"))
         rt = self.lib.get(str(out.get("route", "")))
         res.steps.append({"router": out})
         if rt is None or rt.status != "active":

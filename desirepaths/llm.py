@@ -43,7 +43,7 @@ MODEL = os.environ.get("DP_MODEL", "gemma-4-26b-a4b-it")  # Gemma 4 via the Gemi
 BASE_URL = os.environ.get("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
 EMBED_MODEL = os.environ.get("DP_EMBED_MODEL", "nvidia/nemotron-3-embed-1b")
 TEMPERATURE = 0.0
-MAX_TOKENS = 400
+MAX_TOKENS = 1500  # Gemma 4 writes a <thought> block before answering; smaller caps cut the answer off
 ATTEMPTS = 20  # rate limits (429) and timeouts on free tiers: back off up to ~15 min
 
 

@@ -1,6 +1,17 @@
 # STATUS
 
-_Updated: 2026-11-16 ~07:35 IST_
+_Updated: 2026-11-16 ~08:30 IST_
+
+## Submission checklist (hackathon deadline 5 PM IST; tracks and Bounty #2 by 11 PM IST)
+- [x] Public repo: https://github.com/Jmohak2004/desire-paths (CI green)
+- [x] Live link: https://denver-spokesman-music-wall.trycloudflare.com (Cloudflare quick tunnel to the dashboard on
+      this Mac; the Mac must stay on, plugged in and online. If cloudflared restarts the URL changes; see `scratch/tunnel.log`)
+- [ ] Loom (about 4 min): script in `docs/loom_script.md`; record after `make demo`
+- [ ] Posts tagging HydraDB on X and LinkedIn: drafts in `docs/social_posts.md`
+- [ ] Submit live link + repo + Loom: https://forms.gle/9brHhy7BC229tw868
+- [ ] Bounty #2 (article on X + tweet): draft in `docs/blog.md`; submit https://forms.gle/i8ybFDVciMThjhGbA
+- Bounty #1 (SelfGraph PR): investigated, nothing filed. The one candidate fix removed HydraDB full-scan warnings but
+  made inserts about 9× slower on a large store (measured A/B), so it would have been a regression.
 
 ## Works (verified)
 - **HydraDB v0.4.0**, built from source and running locally (`make hydradb`; Bolt 7687; telemetry off).
