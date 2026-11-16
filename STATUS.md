@@ -1,6 +1,6 @@
 # STATUS
 
-_Updated: 2026-11-16 ~08:30 IST_
+_Updated: 2026-11-16 ~12:00 IST_
 
 ## Submission checklist (hackathon deadline 5 PM IST; tracks and Bounty #2 by 11 PM IST)
 - [x] Public repo: https://github.com/Jmohak2004/desire-paths (CI green)
@@ -21,9 +21,12 @@ _Updated: 2026-11-16 ~08:30 IST_
 - `make eval`: full pipeline on HydraDB. 3 seeds × 4 rounds, 48 train / 36 held-out questions per seed, then the
   heal test, savings calculator and README update. Re-running it from the request cache reproduced A, B and
   seed 0 exactly (see run-to-run note in the README).
-- Headline (held-out, after 4 rounds, mean ± std over 3 seeds): C at 1.00 accuracy with 0.67 LLM calls and 440
-  input tokens per task, against B at 1.00 with 4.83 calls and 3,155 tokens. That is 86% fewer calls and tokens.
-  Latency per task: 2.7 s vs 6.7 s. Vector RAG (A) reaches 0.34.
+- Final run (Gemma 4 `gemma-4-26b-a4b-it`, self-hosted HydraDB, 3 seeds, held-out questions): accuracy within one
+  LLM call 0.00 → 0.28 → 0.83 → 0.95 over 4 rounds (B 0.00, A 0.02). Unconstrained accuracy C 1.00, B 0.99, A 0.71.
+  LLM calls per task 0.54 vs 4.87 (89% fewer); tokens per correct answer 326 vs 3,226. First full run (laguna)
+  archived in `results/archive/`, with the same conclusions.
+- Load test on HydraDB (`results/loadtest.md`): 360/360 correct at concurrency 1–64, zero errors. Routes give
+  higher throughput and a lower median than hop-by-hop walking, but a worse p95 tail at high concurrency.
 - Heal test: one on-call fact changes, the dependent route retires, C walks the graph and stays correct, the route
   rebuilds as v2 and is back to 0 LLM calls. The stale-route agent returns the superseded person.
 - Dashboard (`make demo`): measured curves and tables, live ask (B vs C), live fact change, retire, rebuild,

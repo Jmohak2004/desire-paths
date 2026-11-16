@@ -19,10 +19,11 @@ Point at: 3 seeds, mean ± std, model and backend in the footnote.
 
 ## 1:20–2:10 · Live: the same question, B vs C
 On screen: Ask box. Click a held-out example (not ✦), then **B**, then **C**.
-> "Here's a held-out question. B walks the graph: five LLM calls, about ten seconds. C recognises the question shape,
-> picks the learned route and runs it as one HydraDB query: zero LLM calls, about a second, same answer. Here's the
+> "Here's a held-out question. B walks the graph: about five LLM calls, 20–40 seconds with Gemma 4. C recognises the question shape,
+> picks the learned route and runs it as one HydraDB query: zero LLM calls, well under a second, same answer. Here's the
 > path it took and the relation versions it used."
-Click a ✦ question: "A phrasing it has never seen goes through a one-call router."
+Click a ✦ question: "A phrasing it has never seen goes through a one-call router. Gemma thinks before answering, so this
+> call takes 15–30 seconds; it's still one call instead of five."
 Optional: route library → **show the one-query Cypher**.
 
 ## 2:10–3:00 · Live: heal
