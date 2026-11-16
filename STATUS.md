@@ -6,6 +6,9 @@ _Updated: 2026-11-16 ~12:00 IST_
 - [x] Public repo: https://github.com/Jmohak2004/desire-paths (CI green)
 - [x] Live link: https://denver-spokesman-music-wall.trycloudflare.com (Cloudflare quick tunnel to the dashboard on
       this Mac; the Mac must stay on, plugged in and online. If cloudflared restarts the URL changes; see `scratch/tunnel.log`)
+- [x] Always-up read-only snapshot: https://jmohak2004.github.io/desire-paths/ (GitHub Pages; rebuild with `make site`,
+      then push `site/` to the gh-pages branch)
+- [x] Go-to-market section (README + dashboard): who pays, measured economics, pricing hypothesis, honest status
 - [ ] Loom (about 4 min): script in `docs/loom_script.md`; record after `make demo`
 - [ ] Posts tagging HydraDB on X and LinkedIn: drafts in `docs/social_posts.md`
 - [ ] Submit live link + repo + Loom: https://forms.gle/9brHhy7BC229tw868
